@@ -1,1254 +1,609 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dota 2 赛事管理与智能组队系统</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts: Cinzel & Montserrat -->
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800;900&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        dota: {
-                            red: '#C2352B',
-                            darkRed: '#7A1C16',
-                            gold: '#D4A359',
-                            darkGold: '#8C682A',
-                            bg: '#0D0E12',
-                            card: '#161920',
-                            border: '#2A2E3B',
-                            panel: '#1A1E29'
-                        }
-                    },
-                    fontFamily: {
-                        cinzel: ['Cinzel', 'serif'],
-                        sans: ['Montserrat', 'sans-serif']
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        body {
-            background-color: #0D0E12;
-            background-image: 
-                radial-gradient(circle at 50% 0%, rgba(194, 53, 43, 0.15) 0%, transparent 70%),
-                radial-gradient(circle at 80% 80%, rgba(212, 163, 89, 0.08) 0%, transparent 50%);
-            background-attachment: fixed;
-            color: #E2E8F0;
-            font-family: 'Montserrat', sans-serif;
-        }
-
-        /* Dota Glow Effects */
-        .glow-red {
-            box-shadow: 0 0 15px rgba(194, 53, 43, 0.4);
-        }
-        .glow-gold {
-            box-shadow: 0 0 15px rgba(212, 163, 89, 0.3);
-        }
-        .text-glow-gold {
-            text-shadow: 0 0 10px rgba(212, 163, 89, 0.5);
-        }
-        .text-glow-red {
-            text-shadow: 0 0 10px rgba(194, 53, 43, 0.6);
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0D0E12;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #2A2E3B;
-            border-radius: 3px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #C2352B;
-        }
-
-        /* Clip path for esports feel */
-        .clip-corner {
-            clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
-        }
-        .clip-corner-reverse {
-            clip-path: polygon(12px 0, 100% 0, 100% 100%, 0 100%, 0 12px);
-        }
-
-        /* Tab active state line */
-        .tab-btn.active {
-            color: #D4A359;
-            border-bottom: 3px solid #C2352B;
-            background: linear-gradient(180deg, rgba(194, 53, 43, 0.1) 0%, rgba(0,0,0,0) 100%);
-        }
-
-        .bracket-line-h {
-            height: 2px;
-            background: #2A2E3B;
-        }
-        .bracket-line-v {
-            width: 2px;
-            background: #2A2E3B;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dota 2 赛事管理与多端实时同步平台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #0b0e13;
+      color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    .dota-card {
+      background: linear-gradient(145deg, #121820, #1a222d);
+      border: 1px solid #2a3546;
+    }
+    .dota-card-active {
+      border-color: #f59e0b;
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
+    }
+    .dota-btn-primary {
+      background: linear-gradient(135deg, #d97706, #b45309);
+      color: white;
+    }
+    .dota-btn-primary:hover {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+    }
+  </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between">
+<body class="p-3 md:p-6 min-h-screen">
 
-    <div>
-        <!-- Toast Notification Container -->
-        <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+  <div class="max-w-7xl mx-auto space-y-6">
 
-        <!-- Header -->
-        <header class="border-b border-dota-border/60 bg-dota-bg/90 backdrop-blur-md sticky top-0 z-40">
-            <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded bg-gradient-to-br from-dota-red to-dota-darkRed flex items-center justify-center text-white font-cinzel font-bold text-xl shadow-lg border border-dota-gold/40">
-                        <i class="fa-solid font-bold">⚔️</i>
-                    </div>
-                    <div>
-                        <h1 class="font-cinzel text-2xl font-bold tracking-wider text-white text-glow-red flex items-center gap-2">
-                            DOTA 2 <span class="text-dota-gold text-glow-gold">MATCHMAKER & TOURNAMENT</span>
-                        </h1>
-                        <p class="text-xs text-gray-400">个人赛事管理与智能阵容平衡系统</p>
-                    </div>
-                </div>
+    <!-- 顶部标题与云端配置 -->
+    <div class="dota-card rounded-xl p-4 md:p-6 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-black text-amber-500 flex items-center gap-3">
+          <i class="fa-solid fa-trophy"></i> DOTA 2 赛事管理系统
+        </h1>
+        <p class="text-xs md:text-sm text-gray-400 mt-1">多端实时同步 | 智能分路匹配 | 双赛制排期</p>
+      </div>
 
-                <div class="flex items-center gap-3">
-                    <button onclick="confirmResetAll()" class="px-3 py-1.5 text-xs text-red-400 hover:text-red-300 border border-red-900/50 hover:border-red-600 bg-red-950/20 rounded transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-trash-can"></i> 重置全盘数据
-                    </button>
-                </div>
-            </div>
-
-            <!-- Tab Navigation Header -->
-            <div class="max-w-7xl mx-auto px-4 flex overflow-x-auto space-x-1 border-t border-dota-border/40 text-sm">
-                <button onclick="switchTab('registration')" id="tab-btn-registration" class="tab-btn active px-5 py-3 font-semibold text-gray-400 hover:text-dota-gold transition flex items-center gap-2 whitespace-nowrap">
-                    <i class="fa-solid fa-user-plus"></i> 选手报名 & 选手池
-                    <span id="badge-unmatched" class="ml-1 px-2 py-0.5 text-xs bg-dota-red/80 text-white rounded-full">0</span>
-                </button>
-                <button onclick="switchTab('matchmaking')" id="tab-btn-matchmaking" class="tab-btn px-5 py-3 font-semibold text-gray-400 hover:text-dota-gold transition flex items-center gap-2 whitespace-nowrap">
-                    <i class="fa-solid fa-people-group"></i> 智能匹配组队
-                    <span id="badge-teams" class="ml-1 px-2 py-0.5 text-xs bg-dota-darkGold text-white rounded-full">0 队</span>
-                </button>
-                <button onclick="switchTab('bracket4')" id="tab-btn-bracket4" class="tab-btn px-5 py-3 font-semibold text-gray-400 hover:text-dota-gold transition flex items-center gap-2 whitespace-nowrap">
-                    <i class="fa-solid fa-sitemap"></i> 4强淘汰赛 (BO1/BO3)
-                </button>
-                <button onclick="switchTab('bracket6')" id="tab-btn-bracket6" class="tab-btn px-5 py-3 font-semibold text-gray-400 hover:text-dota-gold transition flex items-center gap-2 whitespace-nowrap">
-                    <i class="fa-solid fa-trophy"></i> 6队对决战 (BO3)
-                </button>
-            </div>
-        </header>
-
-        <!-- Main Content Area -->
-        <main class="max-w-7xl mx-auto px-4 py-6">
-
-            <!-- ================= TAB 1: REGISTRATION & PLAYER POOL ================= -->
-            <section id="tab-registration" class="tab-content space-y-6">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    
-                    <!-- Registration Form -->
-                    <div class="lg:col-span-1 bg-dota-card border border-dota-border rounded-lg p-5 shadow-xl">
-                        <div class="border-b border-dota-border pb-3 mb-4 flex items-center justify-between">
-                            <h2 class="font-cinzel text-lg font-bold text-dota-gold flex items-center gap-2">
-                                <i class="fa-solid fa-id-card text-dota-red"></i> 选手报名表单
-                            </h2>
-                            <span class="text-xs text-gray-400">实时本地保存</span>
-                        </div>
-
-                        <form id="registration-form" onsubmit="handleRegister(event)" class="space-y-4">
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-300 mb-1">游戏昵称 (Steam / Dota 2)</label>
-                                <div class="relative">
-                                    <i class="fa-solid fa-user absolute left-3 top-3 text-gray-500 text-sm"></i>
-                                    <input type="text" id="reg-name" required placeholder="例如: Miracle-" class="w-full bg-dota-panel border border-dota-border rounded py-2 pl-9 pr-3 text-sm focus:outline-none focus:border-dota-gold text-white placeholder-gray-600 transition">
-                                </div>
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-300 mb-1">Dota 2 数字 ID (仅纯数字)</label>
-                                <div class="relative">
-                                    <i class="fa-solid fa-hashtag absolute left-3 top-3 text-gray-500 text-sm"></i>
-                                    <input type="text" id="reg-id" required placeholder="例如: 105248644" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="w-full bg-dota-panel border border-dota-border rounded py-2 pl-9 pr-3 text-sm focus:outline-none focus:border-dota-gold text-white placeholder-gray-600 transition">
-                                </div>
-                                <p class="text-[11px] text-gray-500 mt-1">唯一标识，防重复报名</p>
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-xs font-semibold text-gray-300 mb-1">预估天梯分数 (MMR)</label>
-                                    <input type="number" id="reg-mmr" min="0" max="15000" required placeholder="如 4500" class="w-full bg-dota-panel border border-dota-border rounded py-2 px-3 text-sm focus:outline-none focus:border-dota-gold text-white placeholder-gray-600 transition">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-gray-300 mb-1">对应段位参考</label>
-                                    <select id="reg-rank-title" class="w-full bg-dota-panel border border-dota-border rounded py-2 px-2 text-sm focus:outline-none focus:border-dota-gold text-white transition">
-                                        <option value="先锋/卫士">先锋 / 卫士 (&lt;1500)</option>
-                                        <option value="十字军/执政官">十字军 / 执政官 (1500-3000)</option>
-                                        <option value="传奇/万古流芳" selected>传奇 / 万古流芳 (3000-4500)</option>
-                                        <option value="超凡入圣">超凡入圣 (4500-5600)</option>
-                                        <option value="冠绝一世">冠绝一世 (5600+)</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-300 mb-1">常玩 / 主打位置</label>
-                                <select id="reg-position" required class="w-full bg-dota-panel border border-dota-border rounded py-2 px-3 text-sm focus:outline-none focus:border-dota-gold text-white transition">
-                                    <option value="1">1号位 - 核心 (Carry)</option>
-                                    <option value="2">2号位 - 中单 (Mid)</option>
-                                    <option value="3">3号位 - 劣单 (Offlane)</option>
-                                    <option value="4">4号位 - 游走/软辅 (Soft Support)</option>
-                                    <option value="5">5号位 - 纯辅/硬辅 (Hard Support)</option>
-                                </select>
-                            </div>
-
-                            <button type="submit" class="w-full mt-2 py-2.5 bg-gradient-to-r from-dota-red to-dota-darkRed hover:from-red-600 hover:to-dota-red text-white font-semibold rounded shadow transition flex items-center justify-center gap-2 border border-red-500/30">
-                                <i class="fa-solid fa-user-plus"></i> 提交报名
-                            </button>
-                        </form>
-                    </div>
-
-                    <!-- Player Pool (Unmatched / All) -->
-                    <div class="lg:col-span-2 bg-dota-card border border-dota-border rounded-lg p-5 shadow-xl flex flex-col">
-                        <div class="border-b border-dota-border pb-3 mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                            <div>
-                                <h2 class="font-cinzel text-lg font-bold text-dota-gold flex items-center gap-2">
-                                    <i class="fa-solid fa-users text-dota-red"></i> 已报名选手等待池
-                                </h2>
-                                <p class="text-xs text-gray-400">匹配成功后，选手将自动划出/归入队伍</p>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs text-gray-400">状态过滤:</span>
-                                <select id="filter-status" onchange="renderPlayers()" class="bg-dota-panel border border-dota-border text-xs rounded px-2 py-1 text-white focus:outline-none">
-                                    <option value="unmatched">仅看等待匹配 (等待池)</option>
-                                    <option value="matched">仅看已入队选手</option>
-                                    <option value="all">查看全部选手</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Player List Table/Cards Container -->
-                        <div class="flex-1 overflow-y-auto max-h-[500px] pr-1">
-                            <div id="player-list-grid" class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <!-- Dynamic Player Cards -->
-                            </div>
-                            <div id="player-empty-state" class="hidden text-center py-12 text-gray-500 border border-dashed border-dota-border/60 rounded">
-                                <i class="fa-solid fa-user-slash text-3xl mb-2 block text-gray-600"></i>
-                                暂无匹配条件下的选手数据
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </section>
-
-            <!-- ================= TAB 2: SMART MATCHMAKING ================= -->
-            <section id="tab-matchmaking" class="tab-content hidden space-y-6">
-                <!-- Control Toolbar -->
-                <div class="bg-dota-card border border-dota-border rounded-lg p-5 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h2 class="font-cinzel text-xl font-bold text-dota-gold flex items-center gap-2">
-                            <i class="fa-solid fa-brain text-dota-red"></i> 智能算法均衡组队
-                        </h2>
-                        <p class="text-xs text-gray-400 mt-0.5">优先保证 1-5 位置齐全，并兼顾每支队伍的 MMR 平均战力平衡</p>
-                    </div>
-
-                    <div class="flex flex-wrap items-center gap-3">
-                        <div class="flex items-center gap-2 bg-dota-panel px-3 py-1.5 border border-dota-border rounded">
-                            <label class="text-xs text-gray-300">目标队伍数:</label>
-                            <select id="match-team-count" class="bg-transparent text-sm text-dota-gold font-bold focus:outline-none">
-                                <option value="2">2 支队伍 (10 人)</option>
-                                <option value="4">4 支队伍 (20 人)</option>
-                                <option value="6">6 支队伍 (30 人)</option>
-                            </select>
-                        </div>
-
-                        <button onclick="runAutoMatchmaking()" class="px-5 py-2 bg-gradient-to-r from-dota-gold to-dota-darkGold hover:brightness-110 text-black font-bold text-sm rounded shadow transition flex items-center gap-2">
-                            <i class="fa-solid fa-wand-magic-sparkles"></i> 一键智能匹配
-                        </button>
-
-                        <button onclick="confirmResetTeams()" class="px-3 py-2 bg-red-950/40 hover:bg-red-900/60 border border-red-800/60 text-red-300 text-xs rounded transition flex items-center gap-1">
-                            <i class="fa-solid fa-rotate-left"></i> 解散队伍
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Generated Teams Grid -->
-                <div id="teams-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- Dynamic Team Cards -->
-                </div>
-
-                <div id="teams-empty-state" class="text-center py-16 bg-dota-card/50 border border-dashed border-dota-border rounded-lg text-gray-500">
-                    <i class="fa-solid fa-shield-halved text-4xl mb-3 text-gray-600 block"></i>
-                    尚未生成队伍，请在上方选择队伍数量并点击“一键智能匹配”
-                </div>
-            </section>
-
-            <!-- ================= TAB 3: 4-TEAM BRACKET (BO1/BO3) ================= -->
-            <section id="tab-bracket4" class="tab-content hidden space-y-6">
-                <div class="bg-dota-card border border-dota-border rounded-lg p-5 shadow-xl flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div>
-                        <h2 class="font-cinzel text-xl font-bold text-dota-gold flex items-center gap-2">
-                            <i class="fa-solid fa-sitemap text-dota-red"></i> 4强淘汰赛 (4进2进1)
-                        </h2>
-                        <p class="text-xs text-gray-400 mt-0.5">支持一键同步已匹配的前4支队伍，手动录入比分并自动晋级</p>
-                    </div>
-
-                    <div class="flex items-center gap-3">
-                        <button onclick="syncTeamsToBracket4()" class="px-4 py-2 bg-dota-panel hover:bg-dota-border border border-dota-gold/50 text-dota-gold text-xs rounded transition flex items-center gap-1.5 font-semibold">
-                            <i class="fa-solid fa-arrows-rotate"></i> 自动载入匹配前4队
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Tournament Bracket Visualizer -->
-                <div class="bg-dota-card border border-dota-border rounded-lg p-6 shadow-xl overflow-x-auto">
-                    <div class="min-w-[800px] grid grid-cols-3 gap-8 items-center py-4 relative">
-                        
-                        <!-- Semi-Finals (Round 1) -->
-                        <div class="space-y-12">
-                            <h3 class="font-cinzel text-sm text-center font-bold text-gray-400 border-b border-dota-border pb-2">半决赛 (Semi-Finals)</h3>
-                            
-                            <!-- Match 1 -->
-                            <div class="bg-dota-panel border border-dota-border rounded p-3 relative clip-corner">
-                                <div class="text-[10px] text-gray-500 mb-2 flex justify-between">
-                                    <span>MATCH #1 (BO1/BO3)</span>
-                                    <span id="b4-m1-status" class="text-dota-gold">未开始</span>
-                                </div>
-                                <div id="b4-m1-t1" class="flex justify-between items-center py-1 px-2 bg-black/30 rounded mb-1 border-l-2 border-transparent">
-                                    <span class="text-xs font-semibold team-name">待定队伍 1</span>
-                                    <input type="number" min="0" max="3" id="score-b4-m1-t1" onchange="updateBracket4Match(1)" class="w-10 bg-dota-card text-center border border-dota-border text-xs text-dota-gold rounded py-0.5">
-                                </div>
-                                <div id="b4-m1-t2" class="flex justify-between items-center py-1 px-2 bg-black/30 rounded border-l-2 border-transparent">
-                                    <span class="text-xs font-semibold team-name">待定队伍 2</span>
-                                    <input type="number" min="0" max="3" id="score-b4-m1-t2" onchange="updateBracket4Match(1)" class="w-10 bg-dota-card text-center border border-dota-border text-xs text-dota-gold rounded py-0.5">
-                                </div>
-                            </div>
-
-                            <!-- Match 2 -->
-                            <div class="bg-dota-panel border border-dota-border rounded p-3 relative clip-corner">
-                                <div class="text-[10px] text-gray-500 mb-2 flex justify-between">
-                                    <span>MATCH #2 (BO1/BO3)</span>
-                                    <span id="b4-m2-status" class="text-dota-gold">未开始</span>
-                                </div>
-                                <div id="b4-m2-t1" class="flex justify-between items-center py-1 px-2 bg-black/30 rounded mb-1 border-l-2 border-transparent">
-                                    <span class="text-xs font-semibold team-name">待定队伍 3</span>
-                                    <input type="number" min="0" max="3" id="score-b4-m2-t1" onchange="updateBracket4Match(2)" class="w-10 bg-dota-card text-center border border-dota-border text-xs text-dota-gold rounded py-0.5">
-                                </div>
-                                <div id="b4-m2-t2" class="flex justify-between items-center py-1 px-2 bg-black/30 rounded border-l-2 border-transparent">
-                                    <span class="text-xs font-semibold team-name">待定队伍 4</span>
-                                    <input type="number" min="0" max="3" id="score-b4-m2-t2" onchange="updateBracket4Match(2)" class="w-10 bg-dota-card text-center border border-dota-border text-xs text-dota-gold rounded py-0.5">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Finals (Round 2) -->
-                        <div class="space-y-6">
-                            <h3 class="font-cinzel text-sm text-center font-bold text-dota-gold border-b border-dota-border pb-2">总决赛 (Finals)</h3>
-                            
-                            <div class="bg-dota-panel border-2 border-dota-gold/60 rounded p-4 relative glow-gold">
-                                <div class="text-[10px] text-dota-gold mb-2 flex justify-between font-bold">
-                                    <span>CHAMPIONSHIP (BO3)</span>
-                                    <span id="b4-m3-status">等待晋级</span>
-                                </div>
-                                <div id="b4-m3-t1" class="flex justify-between items-center py-1.5 px-2 bg-black/40 rounded mb-2 border-l-2 border-transparent">
-                                    <span class="text-xs font-bold team-name text-gray-300">半决赛1 胜者</span>
-                                    <input type="number" min="0" max="3" id="score-b4-m3-t1" onchange="updateBracket4Match(3)" class="w-10 bg-dota-card text-center border border-dota-gold text-xs text-dota-gold font-bold rounded py-0.5">
-                                </div>
-                                <div id="b4-m3-t2" class="flex justify-between items-center py-1.5 px-2 bg-black/40 rounded border-l-2 border-transparent">
-                                    <span class="text-xs font-bold team-name text-gray-300">半决赛2 胜者</span>
-                                    <input type="number" min="0" max="3" id="score-b4-m3-t2" onchange="updateBracket4Match(3)" class="w-10 bg-dota-card text-center border border-dota-gold text-xs text-dota-gold font-bold rounded py-0.5">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Champion Display -->
-                        <div class="flex flex-col items-center justify-center">
-                            <div class="text-center p-6 bg-gradient-to-b from-dota-panel to-dota-card border border-dota-gold/50 rounded-xl glow-gold w-full">
-                                <i class="fa-solid fa-trophy text-5xl text-dota-gold mb-3 animate-bounce"></i>
-                                <div class="text-xs text-gray-400 font-cinzel">4强冠军 (CHAMPION)</div>
-                                <div id="b4-champion-name" class="text-xl font-bold font-cinzel text-dota-gold text-glow-gold mt-1">
-                                    虚位以待
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </section>
-
-            <!-- ================= TAB 4: 6-TEAM SHOWDOWN (BO3) ================= -->
-            <section id="tab-bracket6" class="tab-content hidden space-y-6">
-                <div class="bg-dota-card border border-dota-border rounded-lg p-5 shadow-xl flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div>
-                        <h2 class="font-cinzel text-xl font-bold text-dota-gold flex items-center gap-2">
-                            <i class="fa-solid fa-shield-cat text-dota-red"></i> 6队两两对决战 (BO3 三局两胜)
-                        </h2>
-                        <p class="text-xs text-gray-400 mt-0.5">6支队伍进行3组一对一碰撞，直接决出3支最终胜者队伍</p>
-                    </div>
-
-                    <div class="flex items-center gap-3">
-                        <button onclick="syncTeamsToBracket6()" class="px-4 py-2 bg-dota-panel hover:bg-dota-border border border-dota-gold/50 text-dota-gold text-xs rounded transition flex items-center gap-1.5 font-semibold">
-                            <i class="fa-solid fa-arrows-rotate"></i> 自动载入匹配6队
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 3 Duel Matches Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    
-                    <!-- Match A -->
-                    <div class="bg-dota-card border border-dota-border rounded-lg p-5 shadow-xl flex flex-col justify-between">
-                        <div>
-                            <div class="flex justify-between items-center border-b border-dota-border pb-2 mb-3">
-                                <span class="font-cinzel font-bold text-dota-gold text-sm">对决组 A (BO3)</span>
-                                <span id="b6-m1-status" class="text-xs text-gray-400">未完赛</span>
-                            </div>
-
-                            <div class="space-y-3">
-                                <div id="b6-m1-t1-box" class="p-3 bg-dota-panel border border-dota-border rounded flex justify-between items-center">
-                                    <div>
-                                        <div id="b6-m1-t1-name" class="text-sm font-bold text-white">队伍 1</div>
-                                        <div id="b6-m1-t1-mmr" class="text-[11px] text-gray-500">均分: --</div>
-                                    </div>
-                                    <input type="number" min="0" max="2" id="score-b6-m1-t1" onchange="updateBracket6Match(1)" class="w-12 bg-black text-center border border-dota-gold text-sm text-dota-gold font-bold rounded py-1">
-                                </div>
-
-                                <div class="text-center text-xs text-dota-red font-bold font-cinzel">VS</div>
-
-                                <div id="b6-m1-t2-box" class="p-3 bg-dota-panel border border-dota-border rounded flex justify-between items-center">
-                                    <div>
-                                        <div id="b6-m1-t2-name" class="text-sm font-bold text-white">队伍 2</div>
-                                        <div id="b6-m1-t2-mmr" class="text-[11px] text-gray-500">均分: --</div>
-                                    </div>
-                                    <input type="number" min="0" max="2" id="score-b6-m1-t2" onchange="updateBracket6Match(1)" class="w-12 bg-black text-center border border-dota-gold text-sm text-dota-gold font-bold rounded py-1">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mt-4 pt-3 border-t border-dota-border text-center">
-                            <span class="text-xs text-gray-400">本组胜者: </span>
-                            <span id="b6-m1-winner" class="text-sm font-bold text-dota-gold">等待比分</span>
-                        </div>
-                    </div>
-
-                    <!-- Match B -->
-                    <div class="bg-dota-card border border-dota-border rounded-lg p-5 shadow-xl flex flex-col justify-between">
-                        <div>
-                            <div class="flex justify-between items-center border-b border-dota-border pb-2 mb-3">
-                                <span class="font-cinzel font-bold text-dota-gold text-sm">对决组 B (BO3)</span>
-                                <span id="b6-m2-status" class="text-xs text-gray-400">未完赛</span>
-                            </div>
-
-                            <div class="space-y-3">
-                                <div id="b6-m2-t1-box" class="p-3 bg-dota-panel border border-dota-border rounded flex justify-between items-center">
-                                    <div>
-                                        <div id="b6-m2-t1-name" class="text-sm font-bold text-white">队伍 3</div>
-                                        <div id="b6-m2-t1-mmr" class="text-[11px] text-gray-500">均分: --</div>
-                                    </div>
-                                    <input type="number" min="0" max="2" id="score-b6-m2-t1" onchange="updateBracket6Match(2)" class="w-12 bg-black text-center border border-dota-gold text-sm text-dota-gold font-bold rounded py-1">
-                                </div>
-
-                                <div class="text-center text-xs text-dota-red font-bold font-cinzel">VS</div>
-
-                                <div id="b6-m2-t2-box" class="p-3 bg-dota-panel border border-dota-border rounded flex justify-between items-center">
-                                    <div>
-                                        <div id="b6-m2-t2-name" class="text-sm font-bold text-white">队伍 4</div>
-                                        <div id="b6-m2-t2-mmr" class="text-[11px] text-gray-500">均分: --</div>
-                                    </div>
-                                    <input type="number" min="0" max="2" id="score-b6-m2-t2" onchange="updateBracket6Match(2)" class="w-12 bg-black text-center border border-dota-gold text-sm text-dota-gold font-bold rounded py-1">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mt-4 pt-3 border-t border-dota-border text-center">
-                            <span class="text-xs text-gray-400">本组胜者: </span>
-                            <span id="b6-m2-winner" class="text-sm font-bold text-dota-gold">等待比分</span>
-                        </div>
-                    </div>
-
-                    <!-- Match C -->
-                    <div class="bg-dota-card border border-dota-border rounded-lg p-5 shadow-xl flex flex-col justify-between">
-                        <div>
-                            <div class="flex justify-between items-center border-b border-dota-border pb-2 mb-3">
-                                <span class="font-cinzel font-bold text-dota-gold text-sm">对决组 C (BO3)</span>
-                                <span id="b6-m3-status" class="text-xs text-gray-400">未完赛</span>
-                            </div>
-
-                            <div class="space-y-3">
-                                <div id="b6-m3-t1-box" class="p-3 bg-dota-panel border border-dota-border rounded flex justify-between items-center">
-                                    <div>
-                                        <div id="b6-m3-t1-name" class="text-sm font-bold text-white">队伍 5</div>
-                                        <div id="b6-m3-t1-mmr" class="text-[11px] text-gray-500">均分: --</div>
-                                    </div>
-                                    <input type="number" min="0" max="2" id="score-b6-m3-t1" onchange="updateBracket6Match(3)" class="w-12 bg-black text-center border border-dota-gold text-sm text-dota-gold font-bold rounded py-1">
-                                </div>
-
-                                <div class="text-center text-xs text-dota-red font-bold font-cinzel">VS</div>
-
-                                <div id="b6-m3-t2-box" class="p-3 bg-dota-panel border border-dota-border rounded flex justify-between items-center">
-                                    <div>
-                                        <div id="b6-m3-t2-name" class="text-sm font-bold text-white">队伍 6</div>
-                                        <div id="b6-m3-t2-mmr" class="text-[11px] text-gray-500">均分: --</div>
-                                    </div>
-                                    <input type="number" min="0" max="2" id="score-b6-m3-t2" onchange="updateBracket6Match(3)" class="w-12 bg-black text-center border border-dota-gold text-sm text-dota-gold font-bold rounded py-1">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mt-4 pt-3 border-t border-dota-border text-center">
-                            <span class="text-xs text-gray-400">本组胜者: </span>
-                            <span id="b6-m3-winner" class="text-sm font-bold text-dota-gold">等待比分</span>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- Summary Panel for 3 Victors -->
-                <div class="bg-dota-panel border border-dota-gold/40 rounded-lg p-5 shadow-xl">
-                    <h3 class="font-cinzel font-bold text-dota-gold mb-3 flex items-center gap-2">
-                        <i class="fa-solid fa-crown"></i> 决出的 3 支胜利队伍 (Victorious Trio)
-                    </h3>
-                    <div id="b6-victors-summary" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="p-3 bg-dota-card rounded border border-dota-border text-center text-gray-500 text-xs">组A 胜者待定</div>
-                        <div class="p-3 bg-dota-card rounded border border-dota-border text-center text-gray-500 text-xs">组B 胜者待定</div>
-                        <div class="p-3 bg-dota-card rounded border border-dota-border text-center text-gray-500 text-xs">组C 胜者待定</div>
-                    </div>
-                </div>
-            </section>
-
-        </main>
-    </div>
-
-    <!-- Modal Dialog for confirmation -->
-    <div id="modal-backdrop" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-dota-card border border-dota-gold/50 rounded-lg max-w-md w-full p-6 shadow-2xl relative clip-corner">
-            <h3 id="modal-title" class="font-cinzel text-lg font-bold text-dota-gold mb-2">确认提示</h3>
-            <p id="modal-message" class="text-sm text-gray-300 mb-6">确定要执行此操作吗？</p>
-            <div class="flex justify-end gap-3">
-                <button onclick="closeModal()" class="px-4 py-2 bg-dota-panel hover:bg-dota-border text-xs text-gray-300 rounded transition">取消</button>
-                <button id="modal-confirm-btn" class="px-4 py-2 bg-dota-red hover:bg-red-700 text-xs text-white font-bold rounded transition">确定</button>
-            </div>
+      <!-- 云端状态指示与配置 -->
+      <div class="w-full md:w-auto bg-gray-900/80 p-3 rounded-lg border border-gray-700 space-y-2">
+        <div class="flex items-center justify-between gap-4">
+          <div class="flex items-center gap-2">
+            <span id="sync-status-dot" class="w-3 h-3 rounded-full bg-red-500 inline-block animate-pulse"></span>
+            <span id="sync-status-text" class="text-xs font-semibold text-gray-300">云端未连接</span>
+          </div>
+          <button onclick="toggleConfigModal()" class="text-xs bg-amber-600/30 text-amber-400 hover:bg-amber-600/50 px-2.5 py-1 rounded border border-amber-500/30 transition">
+            <i class="fa-solid fa-gear mr-1"></i>配置/查看密钥
+          </button>
         </div>
+        <div class="text-[11px] text-gray-400 flex justify-between gap-2">
+          <span>上次同步: <span id="last-sync-time">未同步</span></span>
+          <span id="cloud-bin-id-display" class="text-amber-500/80 truncate max-w-[120px]">BIN: 6ad97d82...</span>
+        </div>
+      </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="border-t border-dota-border/50 bg-dota-bg py-4 text-center text-xs text-gray-500 mt-12">
-        <p>Dota 2 Esports Tournament Management System &copy; 2026 | 暗黑电竞数据中心</p>
-    </footer>
+    <!-- 弹窗：JsonBin 密钥设置 -->
+    <div id="config-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div class="dota-card max-w-md w-full p-6 rounded-xl space-y-4 border border-amber-500/50 shadow-2xl">
+        <div class="flex justify-between items-center border-b border-gray-700 pb-3">
+          <h3 class="text-lg font-bold text-amber-400"><i class="fa-solid fa-cloud-arrow-up mr-2"></i>JsonBin 实时同步参数</h3>
+          <button onclick="toggleConfigModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <p class="text-xs text-gray-300 leading-relaxed">
+          参数已内置绑定！手机和电脑打开本页面均会自动连接同一个云端。
+        </p>
+        <div class="space-y-3 text-sm">
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">JsonBin Master Key</label>
+            <input type="password" id="cfg-master-key" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:border-amber-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">JsonBin Bin ID</label>
+            <input type="text" id="cfg-bin-id" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:border-amber-500 outline-none">
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button onclick="saveJsonBinConfig()" class="w-full dota-btn-primary py-2 rounded font-bold text-sm shadow">
+            重新保存并开启连接
+          </button>
+        </div>
+      </div>
+    </div>
 
-    <!-- App JavaScript Logic -->
-    <script>
-        // Key constants for localStorage
-        const STORAGE_PLAYERS_KEY = 'dota2_tm_players_v1';
-        const STORAGE_TEAMS_KEY = 'dota2_tm_teams_v1';
-        const STORAGE_BRACKET4_KEY = 'dota2_tm_b4_v1';
-        const STORAGE_BRACKET6_KEY = 'dota2_tm_b6_v1';
+    <!-- 主体区域：选手报名 + 选手机制 -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        // Position name map
-        const POS_MAP = {
-            '1': { name: '1号位 - Carry', icon: 'fa-crosshairs', badge: 'bg-red-950 text-red-300 border-red-800' },
-            '2': { name: '2号位 - Mid', icon: 'fa-bolt', badge: 'bg-amber-950 text-amber-300 border-amber-800' },
-            '3': { name: '3号位 - Offlane', icon: 'fa-shield', badge: 'bg-emerald-950 text-emerald-300 border-emerald-800' },
-            '4': { name: '4号位 - Soft Sup', icon: 'fa-wand-magic', badge: 'bg-sky-950 text-sky-300 border-sky-800' },
-            '5': { name: '5号位 - Hard Sup', icon: 'fa-hand-holding-heart', badge: 'bg-purple-950 text-purple-300 border-purple-800' }
-        };
+      <!-- 左侧：报名表单 -->
+      <div class="dota-card rounded-xl p-5 shadow-lg space-y-4">
+        <h2 class="text-lg font-bold text-amber-400 flex items-center gap-2 border-b border-gray-700 pb-2">
+          <i class="fa-solid fa-user-plus"></i> 选手报名通道
+        </h2>
 
-        // Application State
-        let players = [];
-        let teams = [];
-        let bracket4Data = {
-            m1: { t1: null, t2: null, s1: 0, s2: 0, winner: null },
-            m2: { t1: null, t2: null, s1: 0, s2: 0, winner: null },
-            m3: { t1: null, t2: null, s1: 0, s2: 0, winner: null }
-        };
-        let bracket6Data = {
-            m1: { t1: null, t2: null, s1: 0, s2: 0, winner: null },
-            m2: { t1: null, t2: null, s1: 0, s2: 0, winner: null },
-            m3: { t1: null, t2: null, s1: 0, s2: 0, winner: null }
-        };
+        <form id="reg-form" onsubmit="handleRegister(event)" class="space-y-3 text-sm">
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">游戏昵称</label>
+            <input type="text" id="reg-name" required placeholder="如: Miracle-" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:border-amber-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">Dota 2 数字 ID (纯数字)</label>
+            <input type="text" id="reg-id" required pattern="\d+" placeholder="如: 106863163" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:border-amber-500 outline-none">
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">段位天梯分</label>
+              <input type="number" id="reg-mmr" min="0" max="12000" required placeholder="如: 4500" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:border-amber-500 outline-none">
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">首选偏好分路</label>
+              <select id="reg-pos" required class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:border-amber-500 outline-none">
+                <option value="1">1号位 (核心Carry)</option>
+                <option value="2">2号位 (中单Mid)</option>
+                <option value="3">3号位 (劣单Offlane)</option>
+                <option value="4">4号位 (游走Support)</option>
+                <option value="5">5号位 (辅助Support)</option>
+              </select>
+            </div>
+          </div>
+          <button type="submit" class="w-full dota-btn-primary py-2.5 rounded font-bold text-sm shadow hover:brightness-110 transition mt-2">
+            确认提交报名
+          </button>
+        </form>
+      </div>
 
-        // Initialize App
-        window.addEventListener('DOMContentLoaded', () => {
-            loadStorageData();
-            renderPlayers();
-            renderTeams();
-            renderBracket4();
-            renderBracket6();
-            updateBadges();
+      <!-- 右侧：报名选手池 (含自动划除/移出) -->
+      <div class="lg:col-span-2 dota-card rounded-xl p-5 shadow-lg space-y-4">
+        <div class="flex flex-wrap justify-between items-center gap-2 border-b border-gray-700 pb-2">
+          <h2 class="text-lg font-bold text-amber-400 flex items-center gap-2">
+            <i class="fa-solid fa-users"></i> 选手数据池 
+            <span id="player-count-badge" class="text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/30">0 人</span>
+          </h2>
+
+          <!-- 自动匹配控制按键 -->
+          <div class="flex items-center gap-2">
+            <select id="match-team-count" class="bg-gray-900 border border-gray-700 text-xs rounded px-2 py-1.5 text-white outline-none">
+              <option value="2">生成 2 支队伍 (10人)</option>
+              <option value="4">生成 4 支队伍 (20人)</option>
+              <option value="6">生成 6 支队伍 (30人)</option>
+            </select>
+            <button onclick="generateMatchmaking()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-1.5 rounded font-bold transition shadow">
+              <i class="fa-solid fa-wand-magic-sparkles mr-1"></i>智能平衡组队
+            </button>
+          </div>
+        </div>
+
+        <!-- 选手列表 -->
+        <div id="player-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-[380px] overflow-y-auto pr-1">
+          <!-- 动态渲染选手 -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 队伍显示板块 -->
+    <div class="dota-card rounded-xl p-5 shadow-lg space-y-4">
+      <div class="flex justify-between items-center border-b border-gray-700 pb-2">
+        <h2 class="text-lg font-bold text-amber-400 flex items-center gap-2">
+          <i class="fa-solid fa-shield-halved"></i> 已匹配队伍展示 (已组队选手自动从待选池划除)
+        </h2>
+        <button onclick="clearTeams()" class="text-xs text-red-400 hover:text-red-300 hover:underline">
+          <i class="fa-solid fa-trash-can mr-1"></i>解散所有队伍
+        </button>
+      </div>
+
+      <div id="teams-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- 动态生成队伍卡片 -->
+      </div>
+    </div>
+
+    <!-- 赛事赛制板块 -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+      <!-- 赛制 1: 4强淘汰赛 (4进2进1) -->
+      <div class="dota-card rounded-xl p-5 shadow-lg space-y-4">
+        <div class="flex justify-between items-center border-b border-gray-700 pb-2">
+          <h3 class="font-bold text-amber-400 flex items-center gap-2">
+            <i class="fa-solid fa-sitemap"></i> 4强淘汰赛 (4进2进1)
+          </h3>
+          <button onclick="syncTeamsToBracket4()" class="text-xs bg-amber-600/30 text-amber-300 hover:bg-amber-600/50 px-2 py-1 rounded">
+            导入已匹配前4队
+          </button>
+        </div>
+
+        <div class="space-y-4 text-xs">
+          <!-- 半决赛 -->
+          <div class="bg-gray-900/60 p-3 rounded border border-gray-800 space-y-2">
+            <div class="font-semibold text-gray-400">半决赛 (BO1/BO3)</div>
+            <div class="grid grid-cols-2 gap-2">
+              <div class="flex items-center gap-1">
+                <span id="b4-t1-name" class="font-bold text-amber-400 truncate w-20">战队1</span>
+                <input type="number" id="b4-m1-s1" onchange="updateBracket4()" min="0" value="0" class="w-10 bg-gray-800 text-center rounded text-white py-1">
+                <span>:</span>
+                <input type="number" id="b4-m1-s2" onchange="updateBracket4()" min="0" value="0" class="w-10 bg-gray-800 text-center rounded text-white py-1">
+                <span id="b4-t2-name" class="font-bold text-amber-400 truncate w-20 text-right">战队2</span>
+              </div>
+              <div class="flex items-center gap-1">
+                <span id="b4-t3-name" class="font-bold text-amber-400 truncate w-20">战队3</span>
+                <input type="number" id="b4-m2-s1" onchange="updateBracket4()" min="0" value="0" class="w-10 bg-gray-800 text-center rounded text-white py-1">
+                <span>:</span>
+                <input type="number" id="b4-m2-s2" onchange="updateBracket4()" min="0" value="0" class="w-10 bg-gray-800 text-center rounded text-white py-1">
+                <span id="b4-t4-name" class="font-bold text-amber-400 truncate w-20 text-right">战队4</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 决赛 -->
+          <div class="bg-amber-950/20 p-3 rounded border border-amber-800/40 space-y-2">
+            <div class="font-semibold text-amber-400 flex justify-between">
+              <span>总决赛</span>
+              <span class="text-amber-500 font-bold">🏆 冠军: <span id="b4-winner-name">未决出</span></span>
+            </div>
+            <div class="flex justify-center items-center gap-3">
+              <span id="b4-f1-name" class="font-bold text-gray-200">胜者 1</span>
+              <input type="number" id="b4-f-s1" onchange="updateBracket4()" min="0" value="0" class="w-12 bg-gray-800 text-center rounded text-white font-bold py-1">
+              <span>-</span>
+              <input type="number" id="b4-f-s2" onchange="updateBracket4()" min="0" value="0" class="w-12 bg-gray-800 text-center rounded text-white font-bold py-1">
+              <span id="b4-f2-name" class="font-bold text-gray-200">胜者 2</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 赛制 2: 6队对决战 (BO3 三局两胜 决出3胜者) -->
+      <div class="dota-card rounded-xl p-5 shadow-lg space-y-4">
+        <div class="flex justify-between items-center border-b border-gray-700 pb-2">
+          <h3 class="font-bold text-amber-400 flex items-center gap-2">
+            <i class="fa-solid fa-swords"></i> 6队循环/两两对决 (BO3 决出3支胜者)
+          </h3>
+          <button onclick="syncTeamsToMatch6()" class="text-xs bg-amber-600/30 text-amber-300 hover:bg-amber-600/50 px-2 py-1 rounded">
+            导入已匹配6队伍
+          </button>
+        </div>
+
+        <div class="space-y-3 text-xs">
+          <!-- 3组对决 -->
+          <div class="grid grid-cols-1 gap-2">
+            <!-- 对局 A -->
+            <div class="bg-gray-900/60 p-2.5 rounded border border-gray-800 flex items-center justify-between">
+              <span id="m6-t1" class="font-bold text-amber-400 truncate w-24">队伍 1</span>
+              <div class="flex items-center gap-1">
+                <input type="number" id="m6-s1-1" onchange="updateMatch6()" min="0" max="2" value="0" class="w-10 bg-gray-800 text-center rounded py-0.5">
+                <span>:</span>
+                <input type="number" id="m6-s1-2" onchange="updateMatch6()" min="0" max="2" value="0" class="w-10 bg-gray-800 text-center rounded py-0.5">
+              </div>
+              <span id="m6-t2" class="font-bold text-amber-400 truncate w-24 text-right">队伍 2</span>
+            </div>
+
+            <!-- 对局 B -->
+            <div class="bg-gray-900/60 p-2.5 rounded border border-gray-800 flex items-center justify-between">
+              <span id="m6-t3" class="font-bold text-amber-400 truncate w-24">队伍 3</span>
+              <div class="flex items-center gap-1">
+                <input type="number" id="m6-s2-1" onchange="updateMatch6()" min="0" max="2" value="0" class="w-10 bg-gray-800 text-center rounded py-0.5">
+                <span>:</span>
+                <input type="number" id="m6-s2-2" onchange="updateMatch6()" min="0" max="2" value="0" class="w-10 bg-gray-800 text-center rounded py-0.5">
+              </div>
+              <span id="m6-t4" class="font-bold text-amber-400 truncate w-24 text-right">队伍 4</span>
+            </div>
+
+            <!-- 对局 C -->
+            <div class="bg-gray-900/60 p-2.5 rounded border border-gray-800 flex items-center justify-between">
+              <span id="m6-t5" class="font-bold text-amber-400 truncate w-24">队伍 5</span>
+              <div class="flex items-center gap-1">
+                <input type="number" id="m6-s3-1" onchange="updateMatch6()" min="0" max="2" value="0" class="w-10 bg-gray-800 text-center rounded py-0.5">
+                <span>:</span>
+                <input type="number" id="m6-s3-2" onchange="updateMatch6()" min="0" max="2" value="0" class="w-10 bg-gray-800 text-center rounded py-0.5">
+              </div>
+              <span id="m6-t6" class="font-bold text-amber-400 truncate w-24 text-right">队伍 6</span>
+            </div>
+          </div>
+
+          <!-- 3支获胜队伍展示 -->
+          <div class="bg-emerald-950/30 p-2.5 rounded border border-emerald-800/40 text-emerald-400 font-semibold flex items-center justify-between">
+            <span>🎉 晋级/获胜三支战队：</span>
+            <span id="m6-winners" class="font-bold text-white">等待对决结果...</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    // 预设默认配置 (绑定的云端 Key 与 Bin ID)
+    const DEFAULT_MASTER_KEY = '$2a$10$H6/1k6xZrhDZrng0EcZVyOYg3ZOBe5YmYZnO2iYMiVkJA1qv8UmXi';
+    const DEFAULT_BIN_ID = '6ad97d82ffd5d16053816197';
+
+    // 全局数据结构
+    let store = {
+      players: [],
+      teams: [],
+      bracket4: { t: ['战队1','战队2','战队3','战队4'], m1:[0,0], m2:[0,0], f:[0,0] },
+      match6: { t: ['队伍1','队伍2','队伍3','队伍4','队伍5','队伍6'], s1:[0,0], s2:[0,0], s3:[0,0] }
+    };
+
+    let config = { masterKey: DEFAULT_MASTER_KEY, binId: DEFAULT_BIN_ID };
+    let syncTimer = null;
+    let isLocalUpdating = false;
+
+    // 页面加载完成初始化
+    window.onload = () => {
+      loadConfig();
+      renderAll();
+      startAutoSync();
+      pullFromCloud(); // 立即连接并读取云端数据
+    };
+
+    function loadConfig() {
+      config.masterKey = localStorage.getItem('dota2_jsonbin_key') || DEFAULT_MASTER_KEY;
+      config.binId = localStorage.getItem('dota2_jsonbin_id') || DEFAULT_BIN_ID;
+      document.getElementById('cfg-master-key').value = config.masterKey;
+      document.getElementById('cfg-bin-id').value = config.binId;
+      document.getElementById('cloud-bin-id-display').innerText = 'BIN: ' + config.binId.substring(0, 8) + '...';
+    }
+
+    function toggleConfigModal() {
+      document.getElementById('config-modal').classList.toggle('hidden');
+    }
+
+    function saveJsonBinConfig() {
+      const key = document.getElementById('cfg-master-key').value.trim();
+      const id = document.getElementById('cfg-bin-id').value.trim();
+      if (!key || !id) return alert('请完整填写 Key 与 Bin ID！');
+      
+      config.masterKey = key;
+      config.binId = id;
+      localStorage.setItem('dota2_jsonbin_key', key);
+      localStorage.setItem('dota2_jsonbin_id', id);
+      document.getElementById('cloud-bin-id-display').innerText = 'BIN: ' + id.substring(0, 8) + '...';
+      toggleConfigModal();
+      startAutoSync();
+      pullFromCloud();
+    }
+
+    // 云端 3秒 自动轮询同步
+    function startAutoSync() {
+      if (syncTimer) clearInterval(syncTimer);
+      updateSyncStatus('connecting', '正在连接云端...');
+      syncTimer = setInterval(() => {
+        if (!isLocalUpdating) pullFromCloud();
+      }, 3000);
+    }
+
+    function updateSyncStatus(type, msg) {
+      const dot = document.getElementById('sync-status-dot');
+      document.getElementById('sync-status-text').innerText = msg;
+      if (type === 'online') {
+        dot.className = "w-3 h-3 rounded-full bg-emerald-500 inline-block";
+      } else if (type === 'syncing') {
+        dot.className = "w-3 h-3 rounded-full bg-amber-500 inline-block animate-ping";
+      } else {
+        dot.className = "w-3 h-3 rounded-full bg-red-500 inline-block";
+      }
+      document.getElementById('last-sync-time').innerText = new Date().toLocaleTimeString();
+    }
+
+    // 上传至云端 (PUSH)
+    async function pushToCloud() {
+      if (!config.masterKey || !config.binId) return;
+      isLocalUpdating = true;
+      updateSyncStatus('syncing', '正在同步至云端...');
+
+      try {
+        const res = await fetch(`https://api.jsonbin.io/v3/b/${config.binId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Master-Key': config.masterKey
+          },
+          body: JSON.stringify(store)
         });
-
-        // Local Storage Helpers
-        function loadStorageData() {
-            try {
-                const p = localStorage.getItem(STORAGE_PLAYERS_KEY);
-                if (p) players = JSON.parse(p);
-
-                const t = localStorage.getItem(STORAGE_TEAMS_KEY);
-                if (t) teams = JSON.parse(t);
-
-                const b4 = localStorage.getItem(STORAGE_BRACKET4_KEY);
-                if (b4) bracket4Data = JSON.parse(b4);
-
-                const b6 = localStorage.getItem(STORAGE_BRACKET6_KEY);
-                if (b6) bracket6Data = JSON.parse(b6);
-            } catch (e) {
-                console.error("Local Storage Error", e);
-            }
-        }
-
-        function savePlayers() {
-            localStorage.setItem(STORAGE_PLAYERS_KEY, JSON.stringify(players));
-            updateBadges();
-        }
-
-        function saveTeams() {
-            localStorage.setItem(STORAGE_TEAMS_KEY, JSON.stringify(teams));
-            updateBadges();
-        }
-
-        function saveBracket4() {
-            localStorage.setItem(STORAGE_BRACKET4_KEY, JSON.stringify(bracket4Data));
-        }
-
-        function saveBracket6() {
-            localStorage.setItem(STORAGE_BRACKET6_KEY, JSON.stringify(bracket6Data));
-        }
-
-        // Notification Toast
-        function showToast(msg, type = 'info') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            
-            const colorClass = type === 'error' 
-                ? 'border-red-600 bg-red-950/90 text-red-200' 
-                : (type === 'success' ? 'border-emerald-600 bg-emerald-950/90 text-emerald-200' : 'border-dota-gold bg-dota-card/90 text-dota-gold');
-
-            toast.className = `px-4 py-3 border rounded shadow-2xl backdrop-blur-md text-xs font-semibold flex items-center gap-2 transform transition-all duration-300 translate-y-[-10px] opacity-0 ${colorClass}`;
-            toast.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-circle-exclamation' : (type === 'success' ? 'fa-circle-check' : 'fa-bell')} text-sm"></i> ${msg}`;
-            
-            container.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.classList.remove('translate-y-[-10px]', 'opacity-0');
-            }, 10);
-
-            setTimeout(() => {
-                toast.classList.add('opacity-0', 'translate-y-[-10px]');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-
-        // UI Tab Switcher
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-
-            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-            document.getElementById(`tab-btn-${tabId}`).classList.add('active');
-        }
-
-        function updateBadges() {
-            const unmatchedCount = players.filter(p => !p.isMatched).length;
-            document.getElementById('badge-unmatched').textContent = unmatchedCount;
-            document.getElementById('badge-teams').textContent = `${teams.length} 队`;
-        }
-
-        // Handle Registration
-        function handleRegister(e) {
-            e.preventDefault();
-            
-            const nameInput = document.getElementById('reg-name');
-            const idInput = document.getElementById('reg-id');
-            const mmrInput = document.getElementById('reg-mmr');
-            const rankSelect = document.getElementById('reg-rank-title');
-            const posSelect = document.getElementById('reg-position');
-
-            const name = nameInput.value.trim();
-            const dotaId = idInput.value.trim();
-            const mmr = parseInt(mmrInput.value, 10);
-            const rankTitle = rankSelect.value;
-            const pos = posSelect.value;
-
-            // Strict numeric ID validation
-            if (!/^\d+$/.test(dotaId)) {
-                showToast('Dota 2 ID 必须包含且仅包含数字！', 'error');
-                return;
-            }
-
-            // Uniqueness check
-            const duplicate = players.find(p => p.dotaId === dotaId);
-            if (duplicate) {
-                showToast(`该 Dota 2 ID (${dotaId}) 已经报名过了，不能重复报名！`, 'error');
-                return;
-            }
-
-            const newPlayer = {
-                id: 'player_' + Date.now() + '_' + Math.floor(Math.random()*1000),
-                name,
-                dotaId,
-                mmr,
-                rankTitle,
-                pos,
-                isMatched: false,
-                teamId: null,
-                registeredAt: new Date().toLocaleTimeString()
-            };
-
-            players.unshift(newPlayer);
-            savePlayers();
-            renderPlayers();
-
-            // Reset inputs
-            nameInput.value = '';
-            idInput.value = '';
-            mmrInput.value = '';
-
-            showToast(`选手 ${name} (ID: ${dotaId}) 报名成功！已列入等待池。`, 'success');
-        }
-
-        function deletePlayer(playerId) {
-            const index = players.findIndex(p => p.id === playerId);
-            if (index !== -1) {
-                const p = players[index];
-                if (p.isMatched) {
-                    showToast('已在队伍中的选手不可直接删除，请先重置/解散队伍。', 'error');
-                    return;
-                }
-                players.splice(index, 1);
-                savePlayers();
-                renderPlayers();
-                showToast('选手记录已移除', 'info');
-            }
-        }
-
-        // Render Player Pool Cards
-        function renderPlayers() {
-            const container = document.getElementById('player-list-grid');
-            const emptyState = document.getElementById('player-empty-state');
-            const filter = document.getElementById('filter-status').value;
-
-            let filtered = players;
-            if (filter === 'unmatched') {
-                filtered = players.filter(p => !p.isMatched);
-            } else if (filter === 'matched') {
-                filtered = players.filter(p => p.isMatched);
-            }
-
-            container.innerHTML = '';
-
-            if (filtered.length === 0) {
-                emptyState.classList.remove('hidden');
-                return;
-            } else {
-                emptyState.classList.add('hidden');
-            }
-
-            filtered.forEach(p => {
-                const posInfo = POS_MAP[p.pos] || { name: `${p.pos}号位`, icon: 'fa-user', badge: 'bg-gray-800' };
-                const isMatched = p.isMatched;
-
-                const card = document.createElement('div');
-                card.className = `p-3.5 rounded border transition relative flex flex-col justify-between ${
-                    isMatched 
-                        ? 'bg-dota-panel/40 border-dota-border/40 opacity-60' 
-                        : 'bg-dota-panel border-dota-border hover:border-dota-gold/50 shadow'
-                }`;
-
-                card.innerHTML = `
-                    <div>
-                        <div class="flex justify-between items-start gap-2 mb-2">
-                            <div class="truncate">
-                                <span class="font-bold text-sm text-white hover:text-dota-gold transition">${escapeHtml(p.name)}</span>
-                                <div class="text-[11px] text-gray-400">ID: <span class="font-mono text-gray-300">${p.dotaId}</span></div>
-                            </div>
-                            ${isMatched 
-                                ? `<span class="px-2 py-0.5 text-[10px] rounded bg-gray-800 text-gray-400 border border-gray-700 whitespace-nowrap"><i class="fa-solid fa-check"></i> 已归入队伍</span>` 
-                                : `<span class="px-2 py-0.5 text-[10px] rounded bg-dota-darkRed/60 text-red-200 border border-red-800/60 whitespace-nowrap"><i class="fa-solid fa-clock"></i> 等待组队</span>`}
-                        </div>
-
-                        <div class="flex items-center gap-2 mb-2 flex-wrap">
-                            <span class="px-2 py-0.5 rounded text-[11px] border ${posInfo.badge} flex items-center gap-1">
-                                <i class="fa-solid ${posInfo.icon} text-[10px]"></i> ${posInfo.name}
-                            </span>
-                            <span class="text-xs font-bold text-dota-gold bg-black/40 px-2 py-0.5 rounded border border-dota-border">
-                                ${p.mmr} MMR
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="pt-2 border-t border-dota-border/40 flex justify-between items-center text-[11px] text-gray-500">
-                        <span>段位: ${escapeHtml(p.rankTitle)}</span>
-                        ${!isMatched ? `
-                            <button onclick="deletePlayer('${p.id}')" class="text-red-400 hover:text-red-300 transition">
-                                <i class="fa-solid fa-trash"></i> 删除
-                            </button>
-                        ` : ''}
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        // ================= SMART MATCHMAKING ALGORITHM =================
-        function runAutoMatchmaking() {
-            const teamCount = parseInt(document.getElementById('match-team-count').value, 10);
-            const neededTotal = teamCount * 5;
-
-            // Get unmatched players
-            const available = players.filter(p => !p.isMatched);
-
-            if (available.length < neededTotal) {
-                showToast(`等待池中选手数量不足！匹配 ${teamCount} 支队伍需要 ${neededTotal} 人，当前仅有 ${available.length} 人未组队。`, 'error');
-                return;
-            }
-
-            // Group players by position preference (1 to 5)
-            const posPools = { '1': [], '2': [], '3': [], '4': [], '5': [] };
-            available.forEach(p => {
-                if (posPools[p.pos]) {
-                    posPools[p.pos].push(p);
-                } else {
-                    posPools['1'].push(p); // fallback
-                }
-            });
-
-            // Sort players inside each position pool by MMR descending
-            for (let pos in posPools) {
-                posPools[pos].sort((a, b) => b.mmr - a.mmr);
-            }
-
-            // Create empty teams
-            const newTeams = [];
-            for (let i = 1; i <= teamCount; i++) {
-                newTeams.push({
-                    id: 'team_' + Date.now() + '_' + i,
-                    name: `战队 Team ${String.fromCharCode(64 + i)}`,
-                    members: {}, // pos -> player
-                    totalMMR: 0,
-                    avgMMR: 0
-                });
-            }
-
-            // Fill positions 1 to 5
-            // Snake drafting per position to balance MMR across teams
-            for (let pos = 1; pos <= 5; pos++) {
-                const posStr = String(pos);
-                let candidates = posPools[posStr];
-
-                // If position pool is short, steal/autofill from overflowing position pools
-                if (candidates.length < teamCount) {
-                    const extraNeeded = teamCount - candidates.length;
-                    for (let i = 0; i < extraNeeded; i++) {
-                        // find biggest overflowing pool
-                        let maxPoolPos = null;
-                        let maxCount = -1;
-                        for (let checkPos = 1; checkPos <= 5; checkPos++) {
-                            const pKey = String(checkPos);
-                            if (posPools[pKey].length > teamCount) {
-                                if (posPools[pKey].length > maxCount) {
-                                    maxCount = posPools[pKey].length;
-                                    maxPoolPos = pKey;
-                                }
-                            }
-                        }
-                        
-                        if (maxPoolPos && posPools[maxPoolPos].length > 0) {
-                            const borrowed = posPools[maxPoolPos].pop();
-                            candidates.push(borrowed);
-                        } else {
-                            // Grab from remaining available generally
-                            const fallbackIndex = available.findIndex(p => !Object.values(posPools).flat().includes(p));
-                            if (fallbackIndex !== -1) {
-                                candidates.push(available[fallbackIndex]);
-                            }
-                        }
-                    }
-                }
-
-                // Sort candidates by MMR descending
-                candidates.sort((a, b) => b.mmr - a.mmr);
-
-                // Assign to teams balancing average MMR
-                // Sort current teams by total MMR ascending to assign strongest candidate to weakest team
-                for (let i = 0; i < teamCount; i++) {
-                    newTeams.sort((a, b) => a.totalMMR - b.totalMMR);
-                    const selectedPlayer = candidates.shift();
-                    if (selectedPlayer) {
-                        newTeams[0].members[posStr] = selectedPlayer;
-                        newTeams[0].totalMMR += selectedPlayer.mmr;
-                    }
-                }
-            }
-
-            // Calculate final team MMRs
-            newTeams.forEach(t => {
-                t.avgMMR = Math.round(t.totalMMR / 5);
-                // Mark players as matched
-                Object.values(t.members).forEach(p => {
-                    const found = players.find(x => x.id === p.id);
-                    if (found) {
-                        found.isMatched = true;
-                        found.teamId = t.id;
-                    }
-                });
-            });
-
-            teams = newTeams;
-            savePlayers();
-            saveTeams();
-
-            renderPlayers();
-            renderTeams();
-
-            showToast(`成功自动匹配生成 ${teamCount} 支均衡战队！已从等待池中划除参战人员。`, 'success');
-        }
-
-        // Reset Teams / Disband
-        function confirmResetTeams() {
-            if (teams.length === 0) {
-                showToast('当前暂无任何已生成的队伍', 'info');
-                return;
-            }
-            openModal('确定解散所有队伍吗？', '解散后所有队员将退回“等待匹配池”。', () => {
-                players.forEach(p => {
-                    p.isMatched = false;
-                    p.teamId = null;
-                });
-                teams = [];
-                savePlayers();
-                saveTeams();
-                renderPlayers();
-                renderTeams();
-                showToast('已解散所有队伍，选手均已退回等待池', 'info');
-            });
-        }
-
-        // Render Generated Teams
-        function renderTeams() {
-            const container = document.getElementById('teams-container');
-            const emptyState = document.getElementById('teams-empty-state');
-
-            container.innerHTML = '';
-
-            if (teams.length === 0) {
-                emptyState.classList.remove('hidden');
-                return;
-            } else {
-                emptyState.classList.add('hidden');
-            }
-
-            teams.forEach(team => {
-                const card = document.createElement('div');
-                card.className = 'bg-dota-card border border-dota-border hover:border-dota-gold/60 rounded-lg p-5 shadow-xl transition flex flex-col justify-between clip-corner';
-
-                let membersHtml = '';
-                for (let pos = 1; pos <= 5; pos++) {
-                    const p = team.members[String(pos)];
-                    const posInfo = POS_MAP[String(pos)];
-                    if (p) {
-                        membersHtml += `
-                            <div class="flex justify-between items-center py-1.5 px-2 bg-dota-panel rounded border border-dota-border/50 text-xs">
-                                <div class="flex items-center gap-2">
-                                    <span class="w-5 text-center font-bold text-dota-gold text-[11px]">${pos}号</span>
-                                    <span class="text-white font-medium">${escapeHtml(p.name)}</span>
-                                </div>
-                                <div class="text-[11px] text-gray-400">
-                                    <span class="font-mono text-dota-gold">${p.mmr}</span> MMR
-                                </div>
-                            </div>
-                        `;
-                    }
-                }
-
-                card.innerHTML = `
-                    <div>
-                        <div class="flex justify-between items-center border-b border-dota-border pb-3 mb-3">
-                            <div>
-                                <h3 class="font-cinzel font-bold text-base text-dota-gold">${escapeHtml(team.name)}</h3>
-                                <div class="text-xs text-gray-400">团队平均 MMR: <span class="font-bold text-white">${team.avgMMR}</span></div>
-                            </div>
-                            <span class="px-2 py-1 text-xs bg-black/50 text-dota-gold border border-dota-gold/40 rounded font-mono">
-                                5人阵容
-                            </span>
-                        </div>
-
-                        <div class="space-y-1.5 mb-4">
-                            ${membersHtml}
-                        </div>
-                    </div>
-
-                    <div class="pt-2 border-t border-dota-border/40 text-right">
-                        <span class="text-[11px] text-gray-500">战力战队编制已锁定</span>
-                    </div>
-                `;
-
-                container.appendChild(card);
-            });
-        }
-
-        // ================= TAB 3: 4-TEAM BRACKET LOGIC =================
-        function syncTeamsToBracket4() {
-            if (teams.length < 4) {
-                showToast('请先在智能匹配页面生成至少 4 支队伍！', 'error');
-                return;
-            }
-
-            bracket4Data.m1.t1 = teams[0].name;
-            bracket4Data.m1.t2 = teams[1].name;
-            bracket4Data.m2.t1 = teams[2].name;
-            bracket4Data.m2.t2 = teams[3].name;
-
-            bracket4Data.m1.s1 = 0; bracket4Data.m1.s2 = 0; bracket4Data.m1.winner = null;
-            bracket4Data.m2.s1 = 0; bracket4Data.m2.s2 = 0; bracket4Data.m2.winner = null;
-            bracket4Data.m3.t1 = null; bracket4Data.m3.t2 = null;
-            bracket4Data.m3.s1 = 0; bracket4Data.m3.s2 = 0; bracket4Data.m3.winner = null;
-
-            saveBracket4();
-            renderBracket4();
-            showToast('已成功同步前 4 支匹配队伍至 4强淘汰赛！', 'success');
-        }
-
-        function updateBracket4Match(matchNum) {
-            if (matchNum === 1) {
-                const s1 = parseInt(document.getElementById('score-b4-m1-t1').value || 0, 10);
-                const s2 = parseInt(document.getElementById('score-b4-m1-t2').value || 0, 10);
-                bracket4Data.m1.s1 = s1;
-                bracket4Data.m1.s2 = s2;
-
-                if (s1 > s2) bracket4Data.m1.winner = bracket4Data.m1.t1;
-                else if (s2 > s1) bracket4Data.m1.winner = bracket4Data.m1.t2;
-                else bracket4Data.m1.winner = null;
-
-                bracket4Data.m3.t1 = bracket4Data.m1.winner;
-            } else if (matchNum === 2) {
-                const s1 = parseInt(document.getElementById('score-b4-m2-t1').value || 0, 10);
-                const s2 = parseInt(document.getElementById('score-b4-m2-t2').value || 0, 10);
-                bracket4Data.m2.s1 = s1;
-                bracket4Data.m2.s2 = s2;
-
-                if (s1 > s2) bracket4Data.m2.winner = bracket4Data.m2.t1;
-                else if (s2 > s1) bracket4Data.m2.winner = bracket4Data.m2.t2;
-                else bracket4Data.m2.winner = null;
-
-                bracket4Data.m3.t2 = bracket4Data.m2.winner;
-            } else if (matchNum === 3) {
-                const s1 = parseInt(document.getElementById('score-b4-m3-t1').value || 0, 10);
-                const s2 = parseInt(document.getElementById('score-b4-m3-t2').value || 0, 10);
-                bracket4Data.m3.s1 = s1;
-                bracket4Data.m3.s2 = s2;
-
-                if (s1 > s2) bracket4Data.m3.winner = bracket4Data.m3.t1;
-                else if (s2 > s1) bracket4Data.m3.winner = bracket4Data.m3.t2;
-                else bracket4Data.m3.winner = null;
-            }
-
-            saveBracket4();
-            renderBracket4();
-        }
-
-        function renderBracket4() {
-            // Match 1
-            setBracketTeamDisplay('b4-m1-t1', bracket4Data.m1.t1 || '待定队伍 1', bracket4Data.m1.winner === bracket4Data.m1.t1 && bracket4Data.m1.t1 !== null);
-            setBracketTeamDisplay('b4-m1-t2', bracket4Data.m1.t2 || '待定队伍 2', bracket4Data.m1.winner === bracket4Data.m1.t2 && bracket4Data.m1.t2 !== null);
-            document.getElementById('score-b4-m1-t1').value = bracket4Data.m1.s1;
-            document.getElementById('score-b4-m1-t2').value = bracket4Data.m1.s2;
-            document.getElementById('b4-m1-status').textContent = bracket4Data.m1.winner ? '已完赛' : '对决中';
-
-            // Match 2
-            setBracketTeamDisplay('b4-m2-t1', bracket4Data.m2.t1 || '待定队伍 3', bracket4Data.m2.winner === bracket4Data.m2.t1 && bracket4Data.m2.t1 !== null);
-            setBracketTeamDisplay('b4-m2-t2', bracket4Data.m2.t2 || '待定队伍 4', bracket4Data.m2.winner === bracket4Data.m2.t2 && bracket4Data.m2.t2 !== null);
-            document.getElementById('score-b4-m2-t1').value = bracket4Data.m2.s1;
-            document.getElementById('score-b4-m2-t2').value = bracket4Data.m2.s2;
-            document.getElementById('b4-m2-status').textContent = bracket4Data.m2.winner ? '已完赛' : '对决中';
-
-            // Match 3 (Finals)
-            setBracketTeamDisplay('b4-m3-t1', bracket4Data.m3.t1 || '半决赛1 胜者', bracket4Data.m3.winner === bracket4Data.m3.t1 && bracket4Data.m3.t1 !== null);
-            setBracketTeamDisplay('b4-m3-t2', bracket4Data.m3.t2 || '半决赛2 胜者', bracket4Data.m3.winner === bracket4Data.m3.t2 && bracket4Data.m3.t2 !== null);
-            document.getElementById('score-b4-m3-t1').value = bracket4Data.m3.s1;
-            document.getElementById('score-b4-m3-t2').value = bracket4Data.m3.s2;
-            document.getElementById('b4-m3-status').textContent = bracket4Data.m3.winner ? '已完赛' : '等待晋级';
-
-            // Champion
-            const champEl = document.getElementById('b4-champion-name');
-            if (bracket4Data.m3.winner) {
-                champEl.textContent = bracket4Data.m3.winner;
-                champEl.classList.add('animate-pulse');
-            } else {
-                champEl.textContent = '虚位以待';
-                champEl.classList.remove('animate-pulse');
-            }
-        }
-
-        function setBracketTeamDisplay(elementId, name, isWinner) {
-            const container = document.getElementById(elementId);
-            if (!container) return;
-            const nameSpan = container.querySelector('.team-name');
-            if (nameSpan) nameSpan.textContent = name;
-
-            if (isWinner) {
-                container.classList.add('border-dota-gold', 'bg-dota-darkGold/20');
-                container.classList.remove('border-transparent');
-            } else {
-                container.classList.remove('border-dota-gold', 'bg-dota-darkGold/20');
-                container.classList.add('border-transparent');
-            }
-        }
-
-        // ================= TAB 4: 6-TEAM SHOWDOWN LOGIC =================
-        function syncTeamsToBracket6() {
-            if (teams.length < 6) {
-                showToast('请先在智能匹配页面生成 6 支队伍！', 'error');
-                return;
-            }
-
-            bracket6Data.m1 = { t1: teams[0], t2: teams[1], s1: 0, s2: 0, winner: null };
-            bracket6Data.m2 = { t1: teams[2], t2: teams[3], s1: 0, s2: 0, winner: null };
-            bracket6Data.m3 = { t1: teams[4], t2: teams[5], s1: 0, s2: 0, winner: null };
-
-            saveBracket6();
-            renderBracket6();
-            showToast('已成功载入 6 支队伍进行三局两胜对决！', 'success');
-        }
-
-        function updateBracket6Match(matchNum) {
-            const mKey = `m${matchNum}`;
-            const m = bracket6Data[mKey];
-
-            const s1 = parseInt(document.getElementById(`score-b6-m${matchNum}-t1`).value || 0, 10);
-            const s2 = parseInt(document.getElementById(`score-b6-m${matchNum}-t2`).value || 0, 10);
-
-            m.s1 = s1;
-            m.s2 = s2;
-
-            if (s1 >= 2 || s2 >= 2 || (s1 > s2 && s1 + s2 >= 2)) {
-                m.winner = s1 > s2 ? (m.t1 ? m.t1.name : '队伍1') : (m.t2 ? m.t2.name : '队伍2');
-            } else {
-                m.winner = null;
-            }
-
-            saveBracket6();
-            renderBracket6();
-        }
-
-        function renderBracket6() {
-            for (let i = 1; i <= 3; i++) {
-                const m = bracket6Data[`m${i}`];
-
-                // Team names & MMRs
-                document.getElementById(`b6-m${i}-t1-name`).textContent = m.t1 ? m.t1.name : `队伍 ${i*2-1}`;
-                document.getElementById(`b6-m${i}-t1-mmr`).textContent = m.t1 ? `均分: ${m.t1.avgMMR}` : '均分: --';
-
-                document.getElementById(`b6-m${i}-t2-name`).textContent = m.t2 ? m.t2.name : `队伍 ${i*2}`;
-                document.getElementById(`b6-m${i}-t2-mmr`).textContent = m.t2 ? `均分: ${m.t2.avgMMR}` : '均分: --';
-
-                // Scores
-                document.getElementById(`score-b6-m${i}-t1`).value = m.s1;
-                document.getElementById(`score-b6-m${i}-t2`).value = m.s2;
-
-                // Status & Winner
-                const winnerEl = document.getElementById(`b6-m${i}-winner`);
-                const statusEl = document.getElementById(`b6-m${i}-status`);
-
-                if (m.winner) {
-                    winnerEl.textContent = m.winner;
-                    statusEl.textContent = 'BO3 完赛';
-                    statusEl.className = 'text-xs text-dota-gold font-bold';
-                } else {
-                    winnerEl.textContent = '等待比分 (BO3)';
-                    statusEl.textContent = '未完赛';
-                    statusEl.className = 'text-xs text-gray-400';
-                }
-            }
-
-            // Summary of 3 Victors
-            const summaryContainer = document.getElementById('b6-victors-summary');
-            summaryContainer.innerHTML = '';
-
-            for (let i = 1; i <= 3; i++) {
-                const winner = bracket6Data[`m${i}`].winner;
-                const box = document.createElement('div');
-                if (winner) {
-                    box.className = 'p-3 bg-dota-card border border-dota-gold rounded text-center glow-gold';
-                    box.innerHTML = `
-                        <div class="text-[10px] text-dota-gold font-cinzel">对决组 ${String.fromCharCode(64+i)} 晋级战队</div>
-                        <div class="text-sm font-bold text-white mt-0.5"><i class="fa-solid fa-crown text-dota-gold"></i> ${escapeHtml(winner)}</div>
-                    `;
-                } else {
-                    box.className = 'p-3 bg-dota-card rounded border border-dota-border text-center text-gray-500 text-xs';
-                    box.textContent = `组${String.fromCharCode(64+i)} 胜者待定`;
-                }
-                summaryContainer.appendChild(box);
-            }
-        }
-
-        // ================= MODAL DIALOGS =================
-        let onModalConfirm = null;
-
-        function openModal(title, msg, onConfirm) {
-            document.getElementById('modal-title').textContent = title;
-            document.getElementById('modal-message').textContent = msg;
-            onModalConfirm = onConfirm;
-            document.getElementById('modal-backdrop').classList.remove('hidden');
-        }
-
-        function closeModal() {
-            document.getElementById('modal-backdrop').classList.add('hidden');
-            onModalConfirm = null;
-        }
-
-        document.getElementById('modal-confirm-btn').addEventListener('click', () => {
-            if (onModalConfirm) onModalConfirm();
-            closeModal();
+        if (res.ok) updateSyncStatus('online', '多端已实时同步');
+        else updateSyncStatus('error', '同步失败');
+      } catch (e) {
+        updateSyncStatus('error', '网络异常');
+      } finally {
+        isLocalUpdating = false;
+      }
+    }
+
+    // 从云端拉取 (PULL)
+    async function pullFromCloud() {
+      if (!config.masterKey || !config.binId) return;
+
+      try {
+        const res = await fetch(`https://api.jsonbin.io/v3/b/${config.binId}/latest`, {
+          headers: { 'X-Master-Key': config.masterKey }
         });
-
-        function confirmResetAll() {
-            openModal('确定清空并重置所有数据吗？', '这将会清除所有已报名的选手、匹配的队伍以及赛程比分记录！', () => {
-                localStorage.removeItem(STORAGE_PLAYERS_KEY);
-                localStorage.removeItem(STORAGE_TEAMS_KEY);
-                localStorage.removeItem(STORAGE_BRACKET4_KEY);
-                localStorage.removeItem(STORAGE_BRACKET6_KEY);
-
-                players = [];
-                teams = [];
-                bracket4Data = {
-                    m1: { t1: null, t2: null, s1: 0, s2: 0, winner: null },
-                    m2: { t1: null, t2: null, s1: 0, s2: 0, winner: null },
-                    m3: { t1: null, t2: null, s1: 0, s2: 0, winner: null }
-                };
-                bracket6Data = {
-                    m1: { t1: null, t2: null, s1: 0, s2: 0, winner: null },
-                    m2: { t1: null, t2: null, s1: 0, s2: 0, winner: null },
-                    m3: { t1: null, t2: null, s1: 0, s2: 0, winner: null }
-                };
-
-                renderPlayers();
-                renderTeams();
-                renderBracket4();
-                renderBracket6();
-                updateBadges();
-
-                showToast('所有数据已全部重置！', 'info');
-            });
+        if (res.ok) {
+          const cloudData = await res.json();
+          if (cloudData.record) {
+            if (JSON.stringify(store) !== JSON.stringify(cloudData.record)) {
+              store = cloudData.record;
+              renderAll();
+            }
+            updateSyncStatus('online', '多端已实时同步');
+          }
         }
+      } catch (e) {
+        updateSyncStatus('error', '网络连接断开');
+      }
+    }
 
-        // Utility: HTML Escaping
-        function escapeHtml(str) {
-            if (!str) return '';
-            return String(str)
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
-    </script>
+    // 选手报名
+    function handleRegister(e) {
+      e.preventDefault();
+      const name = document.getElementById('reg-name').value.trim();
+      const id = document.getElementById('reg-id').value.trim();
+      const mmr = parseInt(document.getElementById('reg-mmr').value);
+      const pos = parseInt(document.getElementById('reg-pos').value);
+
+      if (store.players.some(p => p.id === id)) {
+        return alert('⚠️ 该 Dota 2 数字 ID 已经报名过，请勿重复输入！');
+      }
+
+      store.players.push({ name, id, mmr, pos, inTeam: false });
+      document.getElementById('reg-form').reset();
+      renderAll();
+      pushToCloud();
+    }
+
+    function deletePlayer(id) {
+      store.players = store.players.filter(p => p.id !== id);
+      renderAll();
+      pushToCloud();
+    }
+
+    // 智能组队算法
+    function generateMatchmaking() {
+      const count = parseInt(document.getElementById('match-team-count').value);
+      const needed = count * 5;
+      if (store.players.length < needed) {
+        return alert(`目前需要 ${needed} 名选手，当前仅有 ${store.players.length} 人报名！`);
+      }
+
+      store.players.forEach(p => p.inTeam = false);
+      let available = [...store.players].sort((a,b) => b.mmr - a.mmr);
+      let teams = Array.from({ length: count }, (_, i) => ({
+        id: i + 1,
+        name: `战队 ${i + 1}`,
+        members: []
+      }));
+
+      for (let pos = 1; pos <= 5; pos++) {
+        let posPlayers = available.filter(p => p.pos === pos);
+        teams.forEach((team) => {
+          let selected = posPlayers.shift() || available.shift();
+          if (selected) {
+            selected.inTeam = true;
+            team.members.push({ ...selected, assignedPos: pos });
+            let realP = store.players.find(p => p.id === selected.id);
+            if (realP) realP.inTeam = true;
+            available = available.filter(p => p.id !== selected.id);
+          }
+        });
+      }
+
+      store.teams = teams;
+      renderAll();
+      pushToCloud();
+    }
+
+    function clearTeams() {
+      store.teams = [];
+      store.players.forEach(p => p.inTeam = false);
+      renderAll();
+      pushToCloud();
+    }
+
+    // UI 渲染逻辑
+    function renderAll() {
+      renderPlayers();
+      renderTeams();
+      renderBracket4();
+      renderMatch6();
+    }
+
+    function renderPlayers() {
+      const container = document.getElementById('player-list');
+      document.getElementById('player-count-badge').innerText = `${store.players.length} 人`;
+      container.innerHTML = '';
+
+      if (store.players.length === 0) {
+        container.innerHTML = `<p class="text-xs text-gray-500 col-span-full text-center py-6">暂无选手报名</p>`;
+        return;
+      }
+
+      store.players.forEach(p => {
+        const div = document.createElement('div');
+        div.className = `p-3 rounded-lg border flex justify-between items-center transition ${
+          p.inTeam ? 'bg-gray-900/40 border-gray-800 opacity-40 line-through' : 'bg-gray-900 border-gray-700 hover:border-amber-500/50'
+        }`;
+        div.innerHTML = `
+          <div>
+            <div class="font-bold text-sm text-gray-200">${p.name} <span class="text-xs text-amber-500 font-normal">(${p.mmr}分)</span></div>
+            <div class="text-[11px] text-gray-400">ID: ${p.id} | 首选: <span class="text-amber-400 font-semibold">${p.pos}号位</span></div>
+          </div>
+          <button onclick="deletePlayer('${p.id}')" class="text-gray-500 hover:text-red-400 px-1.5"><i class="fa-solid fa-trash"></i></button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function renderTeams() {
+      const container = document.getElementById('teams-container');
+      container.innerHTML = '';
+
+      if (store.teams.length === 0) {
+        container.innerHTML = `<p class="text-xs text-gray-500 col-span-full text-center py-6">尚未生成队伍</p>`;
+        return;
+      }
+
+      store.teams.forEach(t => {
+        const avgMmr = Math.round(t.members.reduce((sum, m) => sum + m.mmr, 0) / t.members.length || 0);
+        const div = document.createElement('div');
+        div.className = "bg-gray-900/80 border border-gray-700 rounded-lg p-3 space-y-2";
+        
+        let membersHTML = t.members.map(m => `
+          <div class="flex justify-between items-center text-xs py-1 border-b border-gray-800">
+            <span class="text-gray-300"><span class="text-amber-500 font-bold mr-1">[${m.assignedPos}号位]</span>${m.name}</span>
+            <span class="text-gray-400 text-[11px]">${m.mmr}分</span>
+          </div>
+        `).join('');
+
+        div.innerHTML = `
+          <div class="flex justify-between items-center border-b border-gray-700 pb-1.5">
+            <span class="font-bold text-amber-400 text-sm">${t.name}</span>
+            <span class="text-xs text-gray-400">均分: <strong class="text-amber-500">${avgMmr}</strong></span>
+          </div>
+          <div class="space-y-0.5">${membersHTML}</div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    // 赛制控制
+    function syncTeamsToBracket4() {
+      if (store.teams.length < 4) return alert('需要先匹配出至少 4 支队伍！');
+      store.bracket4.t = store.teams.slice(0, 4).map(t => t.name);
+      renderBracket4();
+      pushToCloud();
+    }
+
+    function updateBracket4() {
+      store.bracket4.m1 = [parseInt(document.getElementById('b4-m1-s1').value)||0, parseInt(document.getElementById('b4-m1-s2').value)||0];
+      store.bracket4.m2 = [parseInt(document.getElementById('b4-m2-s1').value)||0, parseInt(document.getElementById('b4-m2-s2').value)||0];
+      store.bracket4.f = [parseInt(document.getElementById('b4-f-s1').value)||0, parseInt(document.getElementById('b4-f-s2').value)||0];
+      renderBracket4();
+      pushToCloud();
+    }
+
+    function renderBracket4() {
+      const b = store.bracket4;
+      document.getElementById('b4-t1-name').innerText = b.t[0];
+      document.getElementById('b4-t2-name').innerText = b.t[1];
+      document.getElementById('b4-t3-name').innerText = b.t[2];
+      document.getElementById('b4-t4-name').innerText = b.t[3];
+
+      let f1 = b.m1[0] > b.m1[1] ? b.t[0] : (b.m1[1] > b.m1[0] ? b.t[1] : '胜者1');
+      let f2 = b.m2[0] > b.m2[1] ? b.t[2] : (b.m2[1] > b.m2[0] ? b.t[3] : '胜者2');
+      document.getElementById('b4-f1-name').innerText = f1;
+      document.getElementById('b4-f2-name').innerText = f2;
+
+      let winner = '未决出';
+      if (b.f[0] > b.f[1]) winner = f1;
+      else if (b.f[1] > b.f[0]) winner = f2;
+      document.getElementById('b4-winner-name').innerText = winner;
+    }
+
+    function syncTeamsToMatch6() {
+      if (store.teams.length < 6) return alert('需要先匹配出 6 支队伍！');
+      store.match6.t = store.teams.slice(0, 6).map(t => t.name);
+      renderMatch6();
+      pushToCloud();
+    }
+
+    function updateMatch6() {
+      store.match6.s1 = [parseInt(document.getElementById('m6-s1-1').value)||0, parseInt(document.getElementById('m6-s1-2').value)||0];
+      store.match6.s2 = [parseInt(document.getElementById('m6-s2-1').value)||0, parseInt(document.getElementById('m6-s2-2').value)||0];
+      store.match6.s3 = [parseInt(document.getElementById('m6-s3-1').value)||0, parseInt(document.getElementById('m6-s3-2').value)||0];
+      renderMatch6();
+      pushToCloud();
+    }
+
+    function renderMatch6() {
+      const m = store.match6;
+      document.getElementById('m6-t1').innerText = m.t[0];
+      document.getElementById('m6-t2').innerText = m.t[1];
+      document.getElementById('m6-t3').innerText = m.t[2];
+      document.getElementById('m6-t4').innerText = m.t[3];
+      document.getElementById('m6-t5').innerText = m.t[4];
+      document.getElementById('m6-t6').innerText = m.t[5];
+
+      let w1 = m.s1[0] > m.s1[1] ? m.t[0] : (m.s1[1] > m.s1[0] ? m.t[1] : null);
+      let w2 = m.s2[0] > m.s2[1] ? m.t[2] : (m.s2[1] > m.s2[0] ? m.t[3] : null);
+      let w3 = m.s3[0] > m.s3[1] ? m.t[4] : (m.s3[1] > m.s3[0] ? m.t[5] : null);
+
+      let winners = [w1, w2, w3].filter(Boolean);
+      document.getElementById('m6-winners').innerText = winners.length > 0 ? winners.join('、') : '等待对决结果...';
+    }
+  </script>
 </body>
 </html>
