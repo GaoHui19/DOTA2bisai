@@ -122,16 +122,19 @@
         </form>
       </div>
 
-      <!-- 选手池展示 -->
+      <!-- 选手池展示 (独占一行通栏列表) -->
       <div class="lg:col-span-2 dota-card rounded-xl p-5 shadow-lg space-y-4">
         <div class="flex justify-between items-center border-b border-gray-800 pb-2">
           <h2 class="text-base font-bold text-red-400 flex items-center gap-2">
             <i class="fa-solid fa-users"></i> 已报名选手大池
+            <span id="player-total-count" class="bg-red-950 text-red-400 border border-red-800 px-2.5 py-0.5 rounded-full text-xs font-bold ml-2">当前总数：0 人</span>
           </h2>
-          <span class="text-xs text-gray-400">已入队选手会自动灰色划线</span>
+          <span class="text-xs text-gray-400 hidden sm:inline">已入队选手自动显示灰色划线</span>
         </div>
-        <div id="player-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-[460px] overflow-y-auto pr-1">
-          <!-- 动态选手列表 -->
+        
+        <!-- 通栏单行列表 -->
+        <div id="player-list" class="flex flex-col gap-2 max-h-[480px] overflow-y-auto pr-1">
+          <!-- 动态单行选手卡片 -->
         </div>
       </div>
     </div>
@@ -465,25 +468,42 @@
 
     function renderPlayers() {
       const container = document.getElementById('player-list');
-      document.getElementById('badge-players').innerText = `${store.players.length} 人`;
+      const countText = `${store.players.length} 人`;
+      document.getElementById('badge-players').innerText = countText;
+      document.getElementById('player-total-count').innerText = `当前总数：${countText}`;
       container.innerHTML = '';
 
       if (store.players.length === 0) {
-        container.innerHTML = `<p class="text-xs text-gray-500 col-span-full text-center py-10">暂无选手报名</p>`;
+        container.innerHTML = `<p class="text-xs text-gray-500 text-center py-12">暂无选手报名</p>`;
         return;
       }
 
-      store.players.forEach(p => {
+      // 从上到下独占一行渲染
+      store.players.forEach((p, index) => {
         const div = document.createElement('div');
-        div.className = `p-3 rounded-lg border flex justify-between items-center transition ${
-          p.inTeam ? 'bg-gray-950/40 border-gray-800 opacity-40 line-through' : 'bg-gray-950 border-gray-800 hover:border-red-500/50'
+        div.className = `w-full p-3 rounded-lg border flex items-center justify-between transition ${
+          p.inTeam ? 'bg-gray-950/40 border-gray-800/80 opacity-40 line-through' : 'bg-gray-950 border-gray-800 hover:border-red-500/50'
         }`;
         div.innerHTML = `
-          <div>
-            <div class="font-bold text-xs text-gray-200">${p.name} <span class="text-red-400 font-normal">(${p.mmr}分)</span></div>
-            <div class="text-[11px] text-gray-400">ID: ${p.id} | <span class="text-amber-400 font-semibold">${p.pos}号位</span></div>
+          <div class="flex items-center gap-3">
+            <span class="text-xs text-gray-500 font-mono w-5">${index + 1}.</span>
+            <div class="w-7 h-7 rounded-full bg-red-950/60 border border-red-800/50 flex items-center justify-center text-red-400 font-bold text-xs">
+              ${p.name.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <div class="font-bold text-xs text-gray-200">${p.name} <span class="text-red-400 font-normal ml-1">(${p.mmr} 分)</span></div>
+              <div class="text-[11px] text-gray-400">数字 ID: ${p.id}</div>
+            </div>
           </div>
-          <button onclick="deletePlayer('${p.id}')" class="text-gray-500 hover:text-red-400 px-1.5"><i class="fa-solid fa-trash"></i></button>
+
+          <div class="flex items-center gap-4">
+            <span class="text-xs bg-amber-950/40 text-amber-400 border border-amber-800/40 px-2.5 py-0.5 rounded font-medium">
+              ${p.pos}号位
+            </span>
+            <button onclick="deletePlayer('${p.id}')" class="text-gray-500 hover:text-red-400 p-1 transition" title="删除选手">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </div>
         `;
         container.appendChild(div);
       });
