@@ -57,7 +57,7 @@
         <h1 class="text-2xl font-black text-red-500 flex items-center gap-3">
           <i class="fa-solid fa-trophy"></i> DOTA 2 赛事管理系统
         </h1>
-        <p class="text-xs text-gray-400 mt-1">云端内置秒级同步 | BO3 局数计数器 | 胜者自动高亮</p>
+        <p class="text-xs text-gray-400 mt-1">云端内置秒级同步 | 严格 BO3 赛制规则 | 动物战队命名</p>
       </div>
 
       <!-- 云端状态 -->
@@ -178,14 +178,14 @@
       </div>
     </div>
 
-    <!-- 页面 3: 4强淘汰赛 (BO3 两胜制梯形布局) -->
+    <!-- 页面 3: 4强淘汰赛 (BO3 三局两胜制，严格锁盘) -->
     <div id="tab-bracket4" class="tab-content hidden dota-card rounded-xl p-5 shadow-lg space-y-4">
       <div class="flex justify-between items-center border-b border-gray-800 pb-3">
         <div>
           <h2 class="text-lg font-bold text-blue-400 flex items-center gap-2">
             <i class="fa-solid fa-sitemap"></i> 4强淘汰赛 (BO3 三局两胜制)
           </h2>
-          <p class="text-xs text-gray-400">率先获得 2 胜（最高 2 分）的战队获得胜利并自动晋级</p>
+          <p class="text-xs text-gray-400">率先获得 2 胜（2:0 或 2:1）时自动判定获胜并锁定该对局</p>
         </div>
         <button onclick="syncTeamsToBracket4()" class="text-xs bg-blue-950 border border-blue-800 text-blue-300 hover:bg-blue-900 px-3.5 py-2 rounded font-bold transition">
           <i class="fa-solid fa-rotate mr-1"></i>一键导入已匹配前4队
@@ -199,7 +199,7 @@
           <div class="space-y-6 md:col-span-2">
             <div class="text-gray-400 font-bold border-b border-gray-800 pb-1 flex justify-between">
               <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-500"></span> 半决赛 (SEMI-FINALS BO3)</span>
-              <span class="text-[11px] text-gray-500">先拿到 2 胜晋级</span>
+              <span class="text-[11px] text-gray-500">最高总局数 3 局 (先达 2 胜胜出)</span>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -213,7 +213,7 @@
                   <div class="flex justify-between items-center">
                     <div>
                       <span id="b4-t1-name" class="font-bold text-gray-200 text-sm truncate max-w-[100px]">战队 A</span>
-                      <div id="b4-t1-dots" class="text-[10px] text-amber-500">○○</div>
+                      <div id="b4-t1-dots" class="text-[10px] text-amber-500">○○ (0胜)</div>
                     </div>
                     <div class="flex items-center gap-2">
                       <span id="b4-t1-tag" class="hidden text-[10px] win-tag px-1.5 py-0.5 rounded font-bold">🏆 WIN</span>
@@ -224,7 +224,7 @@
                   <div class="flex justify-between items-center border-t border-gray-900 pt-2">
                     <div>
                       <span id="b4-t2-name" class="font-bold text-gray-200 text-sm truncate max-w-[100px]">战队 B</span>
-                      <div id="b4-t2-dots" class="text-[10px] text-amber-500">○○</div>
+                      <div id="b4-t2-dots" class="text-[10px] text-amber-500">○○ (0胜)</div>
                     </div>
                     <div class="flex items-center gap-2">
                       <span id="b4-t2-tag" class="hidden text-[10px] win-tag px-1.5 py-0.5 rounded font-bold">🏆 WIN</span>
@@ -244,7 +244,7 @@
                   <div class="flex justify-between items-center">
                     <div>
                       <span id="b4-t3-name" class="font-bold text-gray-200 text-sm truncate max-w-[100px]">战队 C</span>
-                      <div id="b4-t3-dots" class="text-[10px] text-amber-500">○○</div>
+                      <div id="b4-t3-dots" class="text-[10px] text-amber-500">○○ (0胜)</div>
                     </div>
                     <div class="flex items-center gap-2">
                       <span id="b4-t3-tag" class="hidden text-[10px] win-tag px-1.5 py-0.5 rounded font-bold">🏆 WIN</span>
@@ -255,7 +255,7 @@
                   <div class="flex justify-between items-center border-t border-gray-900 pt-2">
                     <div>
                       <span id="b4-t4-name" class="font-bold text-gray-200 text-sm truncate max-w-[100px]">战队 D</span>
-                      <div id="b4-t4-dots" class="text-[10px] text-amber-500">○○</div>
+                      <div id="b4-t4-dots" class="text-[10px] text-amber-500">○○ (0胜)</div>
                     </div>
                     <div class="flex items-center gap-2">
                       <span id="b4-t4-tag" class="hidden text-[10px] win-tag px-1.5 py-0.5 rounded font-bold">🏆 WIN</span>
@@ -278,7 +278,7 @@
                 <div class="flex justify-between items-center bg-gray-900/60 p-2.5 rounded border border-amber-500/20">
                   <div class="text-left">
                     <span id="b4-f1-name" class="font-bold text-gray-200 text-xs truncate max-w-[80px] block">胜者 1</span>
-                    <div id="b4-f1-dots" class="text-[9px] text-amber-400">○○</div>
+                    <div id="b4-f1-dots" class="text-[9px] text-amber-400">○○ (0胜)</div>
                   </div>
                   <div class="flex items-center gap-1.5">
                     <span id="b4-f1-tag" class="hidden text-[9px] win-tag px-1 py-0.5 rounded font-bold">WIN</span>
@@ -291,7 +291,7 @@
                 <div class="flex justify-between items-center bg-gray-900/60 p-2.5 rounded border border-amber-500/20">
                   <div class="text-left">
                     <span id="b4-f2-name" class="font-bold text-gray-200 text-xs truncate max-w-[80px] block">胜者 2</span>
-                    <div id="b4-f2-dots" class="text-[9px] text-amber-400">○○</div>
+                    <div id="b4-f2-dots" class="text-[9px] text-amber-400">○○ (0胜)</div>
                   </div>
                   <div class="flex items-center gap-1.5">
                     <span id="b4-f2-tag" class="hidden text-[9px] win-tag px-1 py-0.5 rounded font-bold">WIN</span>
@@ -311,14 +311,14 @@
       </div>
     </div>
 
-    <!-- 页面 4: 6队对决 (BO3 两胜制) -->
+    <!-- 页面 4: 6队对决 (BO3 三局两胜制) -->
     <div id="tab-match6" class="tab-content hidden dota-card rounded-xl p-5 shadow-lg space-y-4">
       <div class="flex justify-between items-center border-b border-gray-800 pb-3">
         <div>
           <h2 class="text-lg font-bold text-emerald-400 flex items-center gap-2">
             <i class="fa-solid fa-swords"></i> 6队两两对决 (BO3 三局两胜制)
           </h2>
-          <p class="text-xs text-gray-400">率先获得 2 胜（最高 2 分）的战队判定胜出</p>
+          <p class="text-xs text-gray-400">率先获得 2 胜（2:0 或 2:1）时自动判定胜出并锁定该组比分</p>
         </div>
         <button onclick="syncTeamsToMatch6()" class="text-xs bg-emerald-950 border border-emerald-800 text-emerald-300 hover:bg-emerald-900 px-3.5 py-2 rounded font-bold transition">
           <i class="fa-solid fa-rotate mr-1"></i>一键导入已匹配6队伍
@@ -331,16 +331,16 @@
           <div class="bg-gray-950/80 p-4 rounded-xl border border-gray-800 space-y-3 shadow">
             <div class="text-emerald-400 font-bold border-b border-gray-900 pb-1 flex justify-between">
               <span>GROUP A</span>
-              <span class="text-[10px] text-gray-500">BO3 (先达2胜)</span>
+              <span class="text-[10px] text-gray-500">BO3 (最高3局)</span>
             </div>
             <div class="space-y-2">
               <div class="flex items-center justify-between">
                 <div>
                   <span id="m6-t1" class="font-bold text-gray-200 truncate w-24 block text-sm">队伍 1</span>
-                  <div id="m6-t1-dots" class="text-[9px] text-emerald-400">○○</div>
+                  <div id="m6-t1-dots" class="text-[9px] text-emerald-400">○○ (0胜)</div>
                 </div>
                 <div class="flex items-center gap-1.5">
-                  <span id="m6-t1-tag" class="hidden text-[9px] win-tag px-1 py-0.5 rounded font-bold">WIN</span>
+                  <span id="m6-t1-tag" class="hidden text-[9px] win-tag px-1 py-0.5 rounded font-bold">🏆 WIN</span>
                   <input type="number" id="m6-s1-1" onchange="updateMatch6()" min="0" max="2" value="0" class="w-10 bg-gray-900 border border-gray-700 text-center rounded py-1 text-white font-bold">
                 </div>
               </div>
@@ -348,10 +348,10 @@
               <div class="flex items-center justify-between border-t border-gray-900 pt-2">
                 <div>
                   <span id="m6-t2" class="font-bold text-gray-200 truncate w-24 block text-sm">队伍 2</span>
-                  <div id="m6-t2-dots" class="text-[9px] text-emerald-400">○○</div>
+                  <div id="m6-t2-dots" class="text-[9px] text-emerald-400">○○ (0胜)</div>
                 </div>
                 <div class="flex items-center gap-1.5">
-                  <span id="m6-t2-tag" class="hidden text-[9px] win-tag px-1 py-0.5 rounded font-bold">WIN</span>
+                  <span id="m6-t2-tag" class="hidden text-[9px] win-tag px-1 py-0.5 rounded font-bold">🏆 WIN</span>
                   <input type="number" id="m6-s1-2" onchange="updateMatch6()" min="0" max="2" value="0" class="w-10 bg-gray-900 border border-gray-700 text-center rounded py-1 text-white font-bold">
                 </div>
               </div>
@@ -362,16 +362,16 @@
           <div class="bg-gray-950/80 p-4 rounded-xl border border-gray-800 space-y-3 shadow">
             <div class="text-emerald-400 font-bold border-b border-gray-900 pb-1 flex justify-between">
               <span>GROUP B</span>
-              <span class="text-[10px] text-gray-500">BO3 (先达2胜)</span>
+              <span class="text-[10px] text-gray-500">BO3 (最高3局)</span>
             </div>
             <div class="space-y-2">
               <div class="flex items-center justify-between">
                 <div>
                   <span id="m6-t3" class="font-bold text-gray-200 truncate w-24 block text-sm">队伍 3</span>
-                  <div id="m6-t3-dots" class="text-[9px] text-emerald-400">○○</div>
+                  <div id="m6-t3-dots" class="text-[9px] text-emerald-400">○○ (0胜)</div>
                 </div>
                 <div class="flex items-center gap-1.5">
-                  <span id="m6-t3-tag" class="hidden text-[9px] win-tag px-1 py-0.5 rounded font-bold">WIN</span>
+                  <span id="m6-t3-tag" class="hidden text-[9px] win-tag px-1 py-0.5 rounded font-bold">🏆 WIN</span>
                   <input type="number" id="m6-s2-1" onchange="updateMatch6()" min="0" max="2" value="0" class="w-10 bg-gray-900 border border-gray-700 text-center rounded py-1 text-white font-bold">
                 </div>
               </div>
@@ -379,10 +379,10 @@
               <div class="flex items-center justify-between border-t border-gray-900 pt-2">
                 <div>
                   <span id="m6-t4" class="font-bold text-gray-200 truncate w-24 block text-sm">队伍 4</span>
-                  <div id="m6-t4-dots" class="text-[9px] text-emerald-400">○○</div>
+                  <div id="m6-t4-dots" class="text-[9px] text-emerald-400">○○ (0胜)</div>
                 </div>
                 <div class="flex items-center gap-1.5">
-                  <span id="m6-t4-tag" class="hidden text-[9px] win-tag px-1 py-0.5 rounded font-bold">WIN</span>
+                  <span id="m6-t4-tag" class="hidden text-[9px] win-tag px-1 py-0.5 rounded font-bold">🏆 WIN</span>
                   <input type="number" id="m6-s2-2" onchange="updateMatch6()" min="0" max="2" value="0" class="w-10 bg-gray-900 border border-gray-700 text-center rounded py-1 text-white font-bold">
                 </div>
               </div>
@@ -393,16 +393,16 @@
           <div class="bg-gray-950/80 p-4 rounded-xl border border-gray-800 space-y-3 shadow">
             <div class="text-emerald-400 font-bold border-b border-gray-900 pb-1 flex justify-between">
               <span>GROUP C</span>
-              <span class="text-[10px] text-gray-500">BO3 (先达2胜)</span>
+              <span class="text-[10px] text-gray-500">BO3 (最高3局)</span>
             </div>
             <div class="space-y-2">
               <div class="flex items-center justify-between">
                 <div>
                   <span id="m6-t5" class="font-bold text-gray-200 truncate w-24 block text-sm">队伍 5</span>
-                  <div id="m6-t5-dots" class="text-[9px] text-emerald-400">○○</div>
+                  <div id="m6-t5-dots" class="text-[9px] text-emerald-400">○○ (0胜)</div>
                 </div>
                 <div class="flex items-center gap-1.5">
-                  <span id="m6-t5-tag" class="hidden text-[9px] win-tag px-1 py-0.5 rounded font-bold">WIN</span>
+                  <span id="m6-t5-tag" class="hidden text-[9px] win-tag px-1 py-0.5 rounded font-bold">🏆 WIN</span>
                   <input type="number" id="m6-s3-1" onchange="updateMatch6()" min="0" max="2" value="0" class="w-10 bg-gray-900 border border-gray-700 text-center rounded py-1 text-white font-bold">
                 </div>
               </div>
@@ -410,10 +410,10 @@
               <div class="flex items-center justify-between border-t border-gray-900 pt-2">
                 <div>
                   <span id="m6-t6" class="font-bold text-gray-200 truncate w-24 block text-sm">队伍 6</span>
-                  <div id="m6-t6-dots" class="text-[9px] text-emerald-400">○○</div>
+                  <div id="m6-t6-dots" class="text-[9px] text-emerald-400">○○ (0胜)</div>
                 </div>
                 <div class="flex items-center gap-1.5">
-                  <span id="m6-t6-tag" class="hidden text-[9px] win-tag px-1 py-0.5 rounded font-bold">WIN</span>
+                  <span id="m6-t6-tag" class="hidden text-[9px] win-tag px-1 py-0.5 rounded font-bold">🏆 WIN</span>
                   <input type="number" id="m6-s3-2" onchange="updateMatch6()" min="0" max="2" value="0" class="w-10 bg-gray-900 border border-gray-700 text-center rounded py-1 text-white font-bold">
                 </div>
               </div>
@@ -699,12 +699,22 @@
       pushToCloud();
     }
 
-    // 严密控制最大 2 胜 BO3 比分
+    // 辅助函数：严格验证并计算 BO3 比分与局数合规性
+    function validateBO3Scores(scoreA, scoreB) {
+      let a = Math.min(2, Math.max(0, parseInt(scoreA) || 0));
+      let b = Math.min(2, Math.max(0, parseInt(scoreB) || 0));
+
+      // 若有战队达 2 胜，则另一队最多为 1 胜（总局数最多 3 局：2:0 或 2:1）
+      if (a === 2 && b > 1) b = 1;
+      if (b === 2 && a > 1) a = 1;
+
+      return [a, b];
+    }
+
     function updateBracket4() {
-      const clamp = v => Math.min(2, Math.max(0, parseInt(v) || 0));
-      store.bracket4.m1 = [clamp(document.getElementById('b4-m1-s1').value), clamp(document.getElementById('b4-m1-s2').value)];
-      store.bracket4.m2 = [clamp(document.getElementById('b4-m2-s1').value), clamp(document.getElementById('b4-m2-s2').value)];
-      store.bracket4.f = [clamp(document.getElementById('b4-f-s1').value), clamp(document.getElementById('b4-f-s2').value)];
+      store.bracket4.m1 = validateBO3Scores(document.getElementById('b4-m1-s1').value, document.getElementById('b4-m1-s2').value);
+      store.bracket4.m2 = validateBO3Scores(document.getElementById('b4-m2-s1').value, document.getElementById('b4-m2-s2').value);
+      store.bracket4.f = validateBO3Scores(document.getElementById('b4-f-s1').value, document.getElementById('b4-f-s2').value);
       renderBracket4();
       pushToCloud();
     }
@@ -717,26 +727,36 @@
 
     function renderBracket4() {
       const b = store.bracket4;
+
+      // 实时打补丁回写 input 框防止超越限制
+      document.getElementById('b4-m1-s1').value = b.m1[0];
+      document.getElementById('b4-m1-s2').value = b.m1[1];
+      document.getElementById('b4-m2-s1').value = b.m2[0];
+      document.getElementById('b4-m2-s2').value = b.m2[1];
+      document.getElementById('b4-f-s1').value = b.f[0];
+      document.getElementById('b4-f-s2').value = b.f[1];
+
       document.getElementById('b4-t1-name').innerText = b.t[0];
       document.getElementById('b4-t2-name').innerText = b.t[1];
       document.getElementById('b4-t3-name').innerText = b.t[2];
       document.getElementById('b4-t4-name').innerText = b.t[3];
 
-      // 设置指示小点
       document.getElementById('b4-t1-dots').innerText = getDots(b.m1[0]);
       document.getElementById('b4-t2-dots').innerText = getDots(b.m1[1]);
       document.getElementById('b4-t3-dots').innerText = getDots(b.m2[0]);
       document.getElementById('b4-t4-dots').innerText = getDots(b.m2[1]);
 
-      // 胜者与 WIN 标签
-      let f1 = '胜者 1', f2 = '胜者 2';
+      // 锁定判定：当达 2 胜时高亮 WIN，且禁言超额加分
       document.getElementById('b4-t1-tag').classList.toggle('hidden', b.m1[0] < 2);
       document.getElementById('b4-t2-tag').classList.toggle('hidden', b.m1[1] < 2);
+      
+      document.getElementById('b4-t3-tag').classList.toggle('hidden', b.m2[0] < 2);
+      document.getElementById('b4-t4-tag').classList.toggle('hidden', b.m2[1] < 2);
+
+      let f1 = '胜者 1', f2 = '胜者 2';
       if (b.m1[0] >= 2) f1 = b.t[0];
       else if (b.m1[1] >= 2) f1 = b.t[1];
 
-      document.getElementById('b4-t3-tag').classList.toggle('hidden', b.m2[0] < 2);
-      document.getElementById('b4-t4-tag').classList.toggle('hidden', b.m2[1] < 2);
       if (b.m2[0] >= 2) f2 = b.t[2];
       else if (b.m2[1] >= 2) f2 = b.t[3];
 
@@ -763,16 +783,23 @@
     }
 
     function updateMatch6() {
-      const clamp = v => Math.min(2, Math.max(0, parseInt(v) || 0));
-      store.match6.s1 = [clamp(document.getElementById('m6-s1-1').value), clamp(document.getElementById('m6-s1-2').value)];
-      store.match6.s2 = [clamp(document.getElementById('m6-s2-1').value), clamp(document.getElementById('m6-s2-2').value)];
-      store.match6.s3 = [clamp(document.getElementById('m6-s3-1').value), clamp(document.getElementById('m6-s3-2').value)];
+      store.match6.s1 = validateBO3Scores(document.getElementById('m6-s1-1').value, document.getElementById('m6-s1-2').value);
+      store.match6.s2 = validateBO3Scores(document.getElementById('m6-s2-1').value, document.getElementById('m6-s2-2').value);
+      store.match6.s3 = validateBO3Scores(document.getElementById('m6-s3-1').value, document.getElementById('m6-s3-2').value);
       renderMatch6();
       pushToCloud();
     }
 
     function renderMatch6() {
       const m = store.match6;
+
+      document.getElementById('m6-s1-1').value = m.s1[0];
+      document.getElementById('m6-s1-2').value = m.s1[1];
+      document.getElementById('m6-s2-1').value = m.s2[0];
+      document.getElementById('m6-s2-2').value = m.s2[1];
+      document.getElementById('m6-s3-1').value = m.s3[0];
+      document.getElementById('m6-s3-2').value = m.s3[1];
+
       document.getElementById('m6-t1').innerText = m.t[0];
       document.getElementById('m6-t2').innerText = m.t[1];
       document.getElementById('m6-t3').innerText = m.t[2];
