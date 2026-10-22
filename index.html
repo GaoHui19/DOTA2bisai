@@ -16,15 +16,9 @@
       background: linear-gradient(145deg, #161920 0%, #111318 100%);
       border: 1px solid #2a2e39;
     }
-    .dota-gold {
-      color: #f39c12;
-    }
-    .bg-dota-red {
-      background-color: #a31d1d;
-    }
-    .bg-dota-red:hover {
-      background-color: #c02626;
-    }
+    .dota-gold { color: #f39c12; }
+    .bg-dota-red { background-color: #a31d1d; }
+    .bg-dota-red:hover { background-color: #c02626; }
     .status-pulse {
       animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
     }
@@ -50,31 +44,16 @@
       </div>
 
       <div class="flex items-center space-x-3">
-        <div id="syncStatusBadge" class="flex items-center bg-gray-800 px-3 py-1.5 rounded-full border border-gray-700 text-xs">
+        <div class="flex items-center bg-gray-800 px-3 py-1.5 rounded-full border border-gray-700 text-xs">
           <span id="syncDot" class="w-2.5 h-2.5 rounded-full bg-green-500 mr-2 status-pulse"></span>
-          <span id="syncText" class="text-gray-300">本地及云端已连接</span>
+          <span id="syncText" class="text-gray-300">KV 云端自动同步中</span>
         </div>
-
-        <button onclick="toggleApiModal()" class="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded text-xs font-semibold flex items-center transition">
-          <i class="fa-solid fa-gear mr-1.5"></i> ⚙️ 云端 API 配置
-        </button>
       </div>
     </div>
   </header>
 
   <!-- 主体部分 -->
   <main class="max-w-7xl mx-auto px-6 py-6 w-full flex-1">
-    <div class="bg-gray-800/60 border border-gray-700 rounded-lg p-4 mb-6 flex flex-wrap justify-between items-center gap-4">
-      <div class="flex items-center space-x-2 text-sm text-gray-300">
-        <i class="fa-solid fa-cloud text-amber-500 text-lg"></i>
-        <span>云端数据库 Worker API 状态：<strong id="apiStatusText" class="text-amber-400">检查中...</strong></span>
-      </div>
-      <div class="flex space-x-2">
-        <button onclick="manualPushCloud()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded text-xs">保存并推送到云端</button>
-        <button onclick="manualFetchCloud()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1 rounded text-xs">从云端拉取最新</button>
-      </div>
-    </div>
-
     <!-- 功能标签导航 -->
     <div class="flex space-x-2 border-b border-gray-800 pb-3 mb-6">
       <button onclick="switchTab('players')" id="tabBtn-players" class="px-4 py-2 rounded-md font-medium text-sm bg-red-600 text-white">1. 选手报名库</button>
@@ -135,9 +114,7 @@
                 <th class="p-3 text-right">操作</th>
               </tr>
             </thead>
-            <tbody id="playerTableBody" class="divide-y divide-gray-800">
-              <!-- JS 渲染 -->
-            </tbody>
+            <tbody id="playerTableBody" class="divide-y divide-gray-800"></tbody>
           </table>
         </div>
       </div>
@@ -155,9 +132,7 @@
           <button onclick="generateTeams(6)" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded text-sm font-bold shadow">生成 6 支战队 (30人)</button>
         </div>
       </div>
-      <div id="teamsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- 战队卡片渲染 -->
-      </div>
+      <div id="teamsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
     </div>
 
     <!-- Tab 3: 4强淘汰赛 -->
@@ -169,9 +144,7 @@
         </div>
         <button onclick="init4Knockout()" class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded text-xs font-bold">导入前4强队伍开始比赛</button>
       </div>
-      <div id="knockoutBracket" class="dota-card p-6 rounded-lg border border-gray-800 min-h-[400px]">
-        <!-- 树状对阵图 -->
-      </div>
+      <div id="knockoutBracket" class="dota-card p-6 rounded-lg border border-gray-800 min-h-[400px]"></div>
     </div>
 
     <!-- Tab 4: 6队对抗赛 -->
@@ -183,35 +156,13 @@
         </div>
         <button onclick="init6Vs()" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded text-xs font-bold">导入6支战队生成对局</button>
       </div>
-      <div id="vs6Grid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <!-- 对抗赛卡片 -->
-      </div>
+      <div id="vs6Grid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
     </div>
   </main>
 
-  <!-- API 配置弹窗 Modal -->
-  <div id="apiModal" class="fixed inset-0 bg-black/80 hidden z-50 flex items-center justify-center p-4">
-    <div class="dota-card max-w-md w-full p-6 rounded-xl border border-gray-700 shadow-2xl">
-      <h3 class="text-lg font-bold text-white mb-2 flex items-center">
-        <i class="fa-solid fa-cloud text-amber-500 mr-2"></i> Cloudflare Worker API 设置
-      </h3>
-      <p class="text-xs text-gray-400 mb-4">把你的 Worker URL 填入下方，即可跨设备（电脑/手机）实时无缝保存与同步数据。</p>
-      
-      <div class="space-y-4">
-        <div>
-          <label class="block text-xs text-gray-300 font-semibold mb-1">Worker API URL 路径 *</label>
-          <input type="text" id="apiWorkerUrl" placeholder="https://dota2-api.niubi1597gepizycom.workers.dev" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-xs text-white">
-        </div>
-      </div>
-
-      <div class="flex justify-end space-x-3 mt-6">
-        <button onclick="toggleApiModal()" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded text-xs">取消</button>
-        <button onclick="saveApiConfig()" class="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded text-xs font-bold">保存并连接</button>
-      </div>
-    </div>
-  </div>
-
   <script>
+    const WORKER_URL = 'https://dota2-api.niubi1597gepizycom.workers.dev';
+
     let state = {
       players: [],
       selectedRoles: [],
@@ -220,109 +171,60 @@
       vs6: []
     };
 
-    let workerUrl = localStorage.getItem('dota2_worker_url') || 'https://dota2-api.niubi1597gepizycom.workers.dev';
-
     window.onload = function() {
-      document.getElementById('apiWorkerUrl').value = workerUrl;
-      loadLocalState();
-      checkCloudConnection();
+      loadFromCloud();
+      setInterval(loadFromCloud, 5000);
     };
 
-    function toggleApiModal() {
-      const m = document.getElementById('apiModal');
-      m.classList.toggle('hidden');
-    }
-
-    function saveApiConfig() {
-      const url = document.getElementById('apiWorkerUrl').value.trim();
-      if (!url) return alert('请输入有效 Worker URL');
-      workerUrl = url;
-      localStorage.setItem('dota2_worker_url', workerUrl);
-      toggleApiModal();
-      manualFetchCloud();
-    }
-
-    async function checkCloudConnection() {
-      const statusEl = document.getElementById('apiStatusText');
-      if (!workerUrl) {
-        statusEl.innerText = '未配置 API';
-        statusEl.className = 'text-gray-400';
-        return;
-      }
+    async function loadFromCloud() {
       try {
-        const res = await fetch(workerUrl);
+        const res = await fetch(WORKER_URL);
         if (res.ok) {
-          statusEl.innerText = '连接成功 (KV云存可读写)';
-          statusEl.className = 'text-green-400 font-bold';
-        } else {
-          statusEl.innerText = '连接异常';
-          statusEl.className = 'text-red-400';
+          const cloudData = await res.json();
+          if (cloudData && typeof cloudData === 'object' && cloudData.players) {
+            if (JSON.stringify(cloudData) !== JSON.stringify(state)) {
+              state = cloudData;
+              renderAll();
+            }
+            updateSyncBadge('bg-green-500', 'KV 云端自动同步中');
+          }
         }
       } catch (e) {
-        statusEl.innerText = '网络连接超时/跨域异常';
-        statusEl.className = 'text-red-400';
+        updateSyncBadge('bg-red-500', '云端网络异常');
       }
     }
 
-    async function manualPushCloud() {
-      saveLocalState();
-      if (!workerUrl) return alert('请先配置 Worker API');
+    async function autoSaveToCloud() {
+      updateSyncBadge('bg-yellow-500', '同步数据中...');
       try {
-        const res = await fetch(workerUrl, {
+        const res = await fetch(WORKER_URL, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(state)
         });
         if (res.ok) {
-          alert('数据已成功保存并同步推送至 Cloudflare 云端！');
+          updateSyncBadge('bg-green-500', 'KV 云端自动同步中');
         } else {
-          alert('云端推送失败，请检查 Worker 配置');
+          updateSyncBadge('bg-red-500', '保存失败');
         }
       } catch (e) {
-        alert('无法连接至云端 Worker：' + e.message);
+        updateSyncBadge('bg-red-500', '网络失败');
       }
     }
 
-    async function manualFetchCloud() {
-      if (!workerUrl) return alert('请先配置 Worker API');
-      try {
-        const res = await fetch(workerUrl);
-        if (res.ok) {
-          const cloudData = await res.json();
-          if (cloudData && typeof cloudData === 'object' && cloudData.players) {
-            state = cloudData;
-            saveLocalState();
-            renderAll();
-            alert('成功从 Cloudflare 云端同步最新赛事数据！');
-          }
-        }
-      } catch (e) {
-        alert('拉取云端数据失败：' + e.message);
-      }
-    }
-
-    function saveLocalState() {
-      localStorage.setItem('dota2_state_v2', JSON.stringify(state));
-    }
-
-    function loadLocalState() {
-      const saved = localStorage.getItem('dota2_state_v2');
-      if (saved) {
-        try { state = JSON.parse(saved); } catch(e){}
-      }
-      renderAll();
+    function updateSyncBadge(colorClass, text) {
+      document.getElementById('syncDot').className = `w-2.5 h-2.5 rounded-full mr-2 status-pulse ${colorClass}`;
+      document.getElementById('syncText').innerText = text;
     }
 
     function toggleRoleSelect(roleNum) {
       const index = state.selectedRoles.indexOf(roleNum);
       if (index > -1) {
         state.selectedRoles.splice(index, 1);
-        document.getElementById(`roleBtn-${roleNum}`).classList.replace('bg-red-600', 'bg-gray-900');
-        document.getElementById(`roleBtn-${roleNum}`).classList.replace('text-white', 'text-gray-400');
+        document.getElementById(`roleBtn-${roleNum}`).className = 'role-btn border border-gray-700 bg-gray-900 text-gray-400 text-xs py-2 rounded';
       } else {
         state.selectedRoles.push(roleNum);
-        document.getElementById(`roleBtn-${roleNum}`).classList.replace('bg-gray-900', 'bg-red-600');
-        document.getElementById(`roleBtn-${roleNum}`).classList.replace('text-gray-400', 'text-white');
+        document.getElementById(`roleBtn-${roleNum}`).className = 'role-btn border border-gray-700 bg-red-600 text-white text-xs py-2 rounded';
       }
     }
 
@@ -330,7 +232,7 @@
       const name = document.getElementById('pName').value.trim();
       const mmr = parseInt(document.getElementById('pMmr').value);
       if (!name || isNaN(mmr) || state.selectedRoles.length === 0) {
-        return alert('请完整填写选手信息、MMR积分并至少选择一个擅长分路！');
+        return alert('请完整填写选手信息（如：小猴子（123456789））、MMR积分并至少选择一个擅长分路！');
       }
       state.players.unshift({
         id: Date.now(),
@@ -344,24 +246,21 @@
       for(let i=1;i<=5;i++){
         document.getElementById(`roleBtn-${i}`).className = 'role-btn border border-gray-700 bg-gray-900 text-gray-400 text-xs py-2 rounded';
       }
-      saveLocalState();
       renderPlayers();
-      manualPushCloud();
+      autoSaveToCloud();
     }
 
     function deletePlayer(id) {
       state.players = state.players.filter(p => p.id !== id);
-      saveLocalState();
       renderPlayers();
-      manualPushCloud();
+      autoSaveToCloud();
     }
 
     function clearAllData() {
       if (confirm('确认要清空所有已录入的选手与赛事战队数据吗？')) {
         state = { players: [], selectedRoles: [], teams: [], knockout: { semi1: [], semi2: [], final: [], champion: null }, vs6: [] };
-        saveLocalState();
         renderAll();
-        manualPushCloud();
+        autoSaveToCloud();
       }
     }
 
@@ -417,9 +316,8 @@
       });
 
       state.teams = teams;
-      saveLocalState();
       renderTeams();
-      manualPushCloud();
+      autoSaveToCloud();
     }
 
     function renderTeams() {
@@ -435,7 +333,7 @@
             <span class="text-xs font-mono bg-amber-500/10 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded">均分: ${t.avgMmr}</span>
           </div>
           <div class="space-y-2">
-            ${t.members.map((m, i) => `
+            ${t.members.map(m => `
               <div class="flex justify-between items-center text-xs bg-gray-900/60 p-2 rounded">
                 <span class="text-gray-300 font-medium">${m.name}</span>
                 <span class="text-gray-500 font-mono">${m.mmr} MMR</span>
@@ -446,9 +344,140 @@
       `).join('');
     }
 
+    function init4Knockout() {
+      if (state.teams.length < 4) return alert('战队数量不足4支，请先生成至少4支战队！');
+      state.knockout = {
+        semi1: { teamA: state.teams[0], teamB: state.teams[3], scoreA: 0, scoreB: 0, winner: null },
+        semi2: { teamA: state.teams[1], teamB: state.teams[2], scoreA: 0, scoreB: 0, winner: null },
+        final: { teamA: null, teamB: null, scoreA: 0, scoreB: 0, winner: null },
+        champion: null
+      };
+      renderKnockout();
+      autoSaveToCloud();
+    }
+
+    function updateMatchScore(matchKey, teamSide, score) {
+      let m = state.knockout[matchKey];
+      if (!m || !m.teamA || !m.teamB) return;
+      if (teamSide === 'A') m.scoreA = parseInt(score) || 0;
+      if (teamSide === 'B') m.scoreB = parseInt(score) || 0;
+      
+      // BO3 判定 2胜
+      if (m.scoreA >= 2) { m.winner = m.teamA; }
+      else if (m.scoreB >= 2) { m.winner = m.teamB; }
+      else { m.winner = null; }
+
+      // 联动决赛
+      if (matchKey === 'semi1' || matchKey === 'semi2') {
+        state.knockout.final.teamA = state.knockout.semi1.winner;
+        state.knockout.final.teamB = state.knockout.semi2.winner;
+        if (!state.knockout.final.teamA || !state.knockout.final.teamB) {
+          state.knockout.final.winner = null;
+        }
+      }
+      renderKnockout();
+      autoSaveToCloud();
+    }
+
+    function renderKnockout() {
+      const k = state.knockout;
+      const container = document.getElementById('knockoutBracket');
+      if (!k.semi1 || !k.semi1.teamA) {
+        container.innerHTML = `<p class="text-gray-500 text-center py-12">点击上方“导入前4强队伍开始比赛”来初始化对阵图。</p>`;
+        return;
+      }
+
+      const matchBox = (title, key, m) => `
+        <div class="bg-gray-900 border border-gray-700 rounded-lg p-3 w-72">
+          <div class="text-xs font-bold text-amber-400 mb-2">${title}</div>
+          <div class="space-y-2 text-xs">
+            <div class="flex justify-between items-center bg-gray-800 p-2 rounded ${m.winner && m.winner.name === (m.teamA && m.teamA.name) ? 'border border-green-500' : ''}">
+              <span class="text-white truncate max-w-[120px]">${m.teamA ? m.teamA.name : '待定'}</span>
+              <input type="number" min="0" max="2" value="${m.scoreA}" onchange="updateMatchScore('${key}', 'A', this.value)" class="w-10 bg-gray-950 border border-gray-700 text-center rounded text-white font-mono">
+            </div>
+            <div class="flex justify-between items-center bg-gray-800 p-2 rounded ${m.winner && m.winner.name === (m.teamB && m.teamB.name) ? 'border border-green-500' : ''}">
+              <span class="text-white truncate max-w-[120px]">${m.teamB ? m.teamB.name : '待定'}</span>
+              <input type="number" min="0" max="2" value="${m.scoreB}" onchange="updateMatchScore('${key}', 'B', this.value)" class="w-10 bg-gray-950 border border-gray-700 text-center rounded text-white font-mono">
+            </div>
+          </div>
+        </div>
+      `;
+
+      container.innerHTML = `
+        <div class="flex flex-col md:flex-row justify-around items-center gap-8 py-4">
+          <div class="space-y-6">
+            ${matchBox('半决赛 1 (Match 1)', 'semi1', k.semi1)}
+            ${matchBox('半决赛 2 (Match 2)', 'semi2', k.semi2)}
+          </div>
+          <div class="flex flex-col items-center">
+            ${matchBox('总决赛 (Grand Final)', 'final', k.final)}
+          </div>
+          <div class="flex flex-col items-center">
+            <div class="bg-gradient-to-b from-amber-600/30 to-gray-900 border border-amber-500 rounded-lg p-5 text-center w-64 shadow-xl">
+              <i class="fa-solid fa-trophy text-amber-400 text-3xl mb-2"></i>
+              <div class="text-xs font-bold text-gray-400 uppercase tracking-widest">赛事总冠军</div>
+              <div class="text-lg font-black text-amber-300 mt-1">${k.final.winner ? k.final.winner.name : '虚位以待'}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function init6Vs() {
+      if (state.teams.length < 6) return alert('战队数量不足6支，请先生成至少6支战队！');
+      state.vs6 = [
+        { id: 1, name: '对抗组 1', teamA: state.teams[0], teamB: state.teams[1], scoreA: 0, scoreB: 0, winner: null },
+        { id: 2, name: '对抗组 2', teamA: state.teams[2], teamB: state.teams[3], scoreA: 0, scoreB: 0, winner: null },
+        { id: 3, name: '对抗组 3', teamA: state.teams[4], teamB: state.teams[5], scoreA: 0, scoreB: 0, winner: null }
+      ];
+      renderVs6();
+      autoSaveToCloud();
+    }
+
+    function updateVs6Score(id, side, score) {
+      let match = state.vs6.find(v => v.id === id);
+      if (!match) return;
+      if (side === 'A') match.scoreA = parseInt(score) || 0;
+      if (side === 'B') match.scoreB = parseInt(score) || 0;
+      if (match.scoreA >= 2) match.winner = match.teamA;
+      else if (match.scoreB >= 2) match.winner = match.teamB;
+      else match.winner = null;
+
+      renderVs6();
+      autoSaveToCloud();
+    }
+
+    function renderVs6() {
+      const container = document.getElementById('vs6Grid');
+      if (!state.vs6 || state.vs6.length === 0) {
+        container.innerHTML = `<p class="text-gray-500 text-sm col-span-3 text-center py-8">暂未生成对抗赛，请点击上方按钮导入6支战队。</p>`;
+        return;
+      }
+      container.innerHTML = state.vs6.map(v => `
+        <div class="dota-card p-4 rounded-lg border border-gray-800">
+          <div class="flex justify-between items-center mb-3 pb-2 border-b border-gray-800">
+            <span class="font-bold text-amber-400 text-sm">${v.name} (BO3)</span>
+            <span class="text-xs bg-gray-800 text-gray-300 px-2 py-0.5 rounded">胜者: ${v.winner ? v.winner.name : '进行中'}</span>
+          </div>
+          <div class="space-y-3 text-xs">
+            <div class="flex justify-between items-center bg-gray-900 p-2.5 rounded ${v.winner && v.winner.name === v.teamA.name ? 'border border-green-500' : ''}">
+              <span class="text-white font-medium truncate max-w-[140px]">${v.teamA.name}</span>
+              <input type="number" min="0" max="2" value="${v.scoreA}" onchange="updateVs6Score(${v.id}, 'A', this.value)" class="w-10 bg-gray-950 border border-gray-700 text-center rounded text-white font-mono py-1">
+            </div>
+            <div class="flex justify-between items-center bg-gray-900 p-2.5 rounded ${v.winner && v.winner.name === v.teamB.name ? 'border border-green-500' : ''}">
+              <span class="text-white font-medium truncate max-w-[140px]">${v.teamB.name}</span>
+              <input type="number" min="0" max="2" value="${v.scoreB}" onchange="updateVs6Score(${v.id}, 'B', this.value)" class="w-10 bg-gray-950 border border-gray-700 text-center rounded text-white font-mono py-1">
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
     function renderAll() {
       renderPlayers();
       renderTeams();
+      renderKnockout();
+      renderVs6();
     }
   </script>
 </body>
