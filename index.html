@@ -57,7 +57,7 @@
         <h1 class="text-2xl font-black text-red-500 flex items-center gap-3">
           <i class="fa-solid fa-trophy"></i> DOTA 2 赛事管理系统
         </h1>
-        <p class="text-xs text-gray-400 mt-1">云端内置秒级同步 | 严格 BO3 赛制规则 | 动物战队命名</p>
+        <p class="text-xs text-gray-400 mt-1">云端内置秒级同步 | 赛果胜出自动锁定 | 分页一键重置</p>
       </div>
 
       <!-- 云端状态 -->
@@ -139,7 +139,9 @@
             <i class="fa-solid fa-users"></i> 已报名选手大池
             <span id="player-total-count" class="bg-red-950 text-red-400 border border-red-800 px-2.5 py-0.5 rounded-full text-xs font-bold ml-2">当前总数：0 人</span>
           </h2>
-          <span class="text-xs text-gray-400 hidden sm:inline">点击复制 ID</span>
+          <button onclick="resetRegisterData()" class="text-xs bg-red-950/60 border border-red-800 text-red-400 hover:bg-red-900 px-2.5 py-1 rounded font-bold transition">
+            <i class="fa-solid fa-rotate-right mr-1"></i>重置报名数据
+          </button>
         </div>
         
         <div id="player-list" class="flex flex-col gap-2.5 max-h-[480px] overflow-y-auto pr-1">
@@ -168,7 +170,7 @@
             一键智能匹配
           </button>
           <button onclick="clearTeams()" class="bg-red-950 hover:bg-red-900 border border-red-800 text-red-400 text-xs px-3 py-2 rounded font-bold transition">
-            解散队伍
+            <i class="fa-solid fa-rotate-right mr-1"></i>重置组队
           </button>
         </div>
       </div>
@@ -185,11 +187,16 @@
           <h2 class="text-lg font-bold text-blue-400 flex items-center gap-2">
             <i class="fa-solid fa-sitemap"></i> 4强淘汰赛 (BO3 三局两胜制)
           </h2>
-          <p class="text-xs text-gray-400">率先获得 2 胜（2:0 或 2:1）时自动判定获胜并锁定该对局</p>
+          <p class="text-xs text-gray-400">胜出后自动锁定，决出冠军。可点击重置按钮清空赛果。</p>
         </div>
-        <button onclick="syncTeamsToBracket4()" class="text-xs bg-blue-950 border border-blue-800 text-blue-300 hover:bg-blue-900 px-3.5 py-2 rounded font-bold transition">
-          <i class="fa-solid fa-rotate mr-1"></i>一键导入已匹配前4队
-        </button>
+        <div class="flex items-center gap-2">
+          <button onclick="syncTeamsToBracket4()" class="text-xs bg-blue-950 border border-blue-800 text-blue-300 hover:bg-blue-900 px-3 py-2 rounded font-bold transition">
+            <i class="fa-solid fa-rotate mr-1"></i>导入前4队
+          </button>
+          <button onclick="resetBracket4Data()" class="text-xs bg-red-950 border border-red-800 text-red-400 hover:bg-red-900 px-3 py-2 rounded font-bold transition">
+            <i class="fa-solid fa-rotate-right mr-1"></i>重置比赛
+          </button>
+        </div>
       </div>
 
       <div class="py-4 text-xs">
@@ -199,7 +206,7 @@
           <div class="space-y-6 md:col-span-2">
             <div class="text-gray-400 font-bold border-b border-gray-800 pb-1 flex justify-between">
               <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-500"></span> 半决赛 (SEMI-FINALS BO3)</span>
-              <span class="text-[11px] text-gray-500">最高总局数 3 局 (先达 2 胜胜出)</span>
+              <span class="text-[11px] text-gray-500">率先获得 2 胜锁定晋级</span>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -318,11 +325,16 @@
           <h2 class="text-lg font-bold text-emerald-400 flex items-center gap-2">
             <i class="fa-solid fa-swords"></i> 6队两两对决 (BO3 三局两胜制)
           </h2>
-          <p class="text-xs text-gray-400">率先获得 2 胜（2:0 或 2:1）时自动判定胜出并锁定该组比分</p>
+          <p class="text-xs text-gray-400">率先获得 2 胜时自动判定胜出并锁定该组。可点击重置按钮清空赛果。</p>
         </div>
-        <button onclick="syncTeamsToMatch6()" class="text-xs bg-emerald-950 border border-emerald-800 text-emerald-300 hover:bg-emerald-900 px-3.5 py-2 rounded font-bold transition">
-          <i class="fa-solid fa-rotate mr-1"></i>一键导入已匹配6队伍
-        </button>
+        <div class="flex items-center gap-2">
+          <button onclick="syncTeamsToMatch6()" class="text-xs bg-emerald-950 border border-emerald-800 text-emerald-300 hover:bg-emerald-900 px-3.5 py-2 rounded font-bold transition">
+            <i class="fa-solid fa-rotate mr-1"></i>导入6支队伍
+          </button>
+          <button onclick="resetMatch6Data()" class="text-xs bg-red-950 border border-red-800 text-red-400 hover:bg-red-900 px-3.5 py-2 rounded font-bold transition">
+            <i class="fa-solid fa-rotate-right mr-1"></i>重置比赛
+          </button>
+        </div>
       </div>
 
       <div class="space-y-4 text-xs pt-2">
@@ -331,7 +343,7 @@
           <div class="bg-gray-950/80 p-4 rounded-xl border border-gray-800 space-y-3 shadow">
             <div class="text-emerald-400 font-bold border-b border-gray-900 pb-1 flex justify-between">
               <span>GROUP A</span>
-              <span class="text-[10px] text-gray-500">BO3 (最高3局)</span>
+              <span class="text-[10px] text-gray-500">BO3 (达2胜锁定)</span>
             </div>
             <div class="space-y-2">
               <div class="flex items-center justify-between">
@@ -362,7 +374,7 @@
           <div class="bg-gray-950/80 p-4 rounded-xl border border-gray-800 space-y-3 shadow">
             <div class="text-emerald-400 font-bold border-b border-gray-900 pb-1 flex justify-between">
               <span>GROUP B</span>
-              <span class="text-[10px] text-gray-500">BO3 (最高3局)</span>
+              <span class="text-[10px] text-gray-500">BO3 (达2胜锁定)</span>
             </div>
             <div class="space-y-2">
               <div class="flex items-center justify-between">
@@ -393,7 +405,7 @@
           <div class="bg-gray-950/80 p-4 rounded-xl border border-gray-800 space-y-3 shadow">
             <div class="text-emerald-400 font-bold border-b border-gray-900 pb-1 flex justify-between">
               <span>GROUP C</span>
-              <span class="text-[10px] text-gray-500">BO3 (最高3局)</span>
+              <span class="text-[10px] text-gray-500">BO3 (达2胜锁定)</span>
             </div>
             <div class="space-y-2">
               <div class="flex items-center justify-between">
@@ -554,6 +566,31 @@
       pushToCloud();
     }
 
+    // 各页面专属重置函数
+    function resetRegisterData() {
+      if (confirm('确定要清空所有已报名的选手数据吗？')) {
+        store.players = [];
+        renderAll();
+        pushToCloud();
+      }
+    }
+
+    function resetBracket4Data() {
+      if (confirm('确定要重置 4 强淘汰赛的所有对阵和比分吗？')) {
+        store.bracket4 = { t: ['战队1','战队2','战队3','战队4'], m1:[0,0], m2:[0,0], f:[0,0] };
+        renderAll();
+        pushToCloud();
+      }
+    }
+
+    function resetMatch6Data() {
+      if (confirm('确定要重置 6 队对决的所有比分吗？')) {
+        store.match6 = { t: ['队伍1','队伍2','队伍3','队伍4','队伍5','队伍6'], s1:[0,0], s2:[0,0], s3:[0,0] };
+        renderAll();
+        pushToCloud();
+      }
+    }
+
     function generateMatchmaking() {
       const count = parseInt(document.getElementById('match-team-count').value);
       const needed = count * 5;
@@ -591,10 +628,12 @@
     }
 
     function clearTeams() {
-      store.teams = [];
-      store.players.forEach(p => p.inTeam = false);
-      renderAll();
-      pushToCloud();
+      if (confirm('确定要解散所有已生成的战队吗？')) {
+        store.teams = [];
+        store.players.forEach(p => p.inTeam = false);
+        renderAll();
+        pushToCloud();
+      }
     }
 
     function renderAll() {
@@ -699,12 +738,12 @@
       pushToCloud();
     }
 
-    // 辅助函数：严格验证并计算 BO3 比分与局数合规性
+    // 验证 BO3 比分逻辑：一旦有一方达到 2 胜，则锁定比分输入
     function validateBO3Scores(scoreA, scoreB) {
       let a = Math.min(2, Math.max(0, parseInt(scoreA) || 0));
       let b = Math.min(2, Math.max(0, parseInt(scoreB) || 0));
 
-      // 若有战队达 2 胜，则另一队最多为 1 胜（总局数最多 3 局：2:0 或 2:1）
+      // 若某一方已经到达 2 胜，则不允许再给另一方加分
       if (a === 2 && b > 1) b = 1;
       if (b === 2 && a > 1) a = 1;
 
@@ -728,13 +767,27 @@
     function renderBracket4() {
       const b = store.bracket4;
 
-      // 实时打补丁回写 input 框防止超越限制
-      document.getElementById('b4-m1-s1').value = b.m1[0];
-      document.getElementById('b4-m1-s2').value = b.m1[1];
-      document.getElementById('b4-m2-s1').value = b.m2[0];
-      document.getElementById('b4-m2-s2').value = b.m2[1];
-      document.getElementById('b4-f-s1').value = b.f[0];
-      document.getElementById('b4-f-s2').value = b.f[1];
+      const inputM1S1 = document.getElementById('b4-m1-s1');
+      const inputM1S2 = document.getElementById('b4-m1-s2');
+      const inputM2S1 = document.getElementById('b4-m2-s1');
+      const inputM2S2 = document.getElementById('b4-m2-s2');
+      const inputFS1 = document.getElementById('b4-f-s1');
+      const inputFS2 = document.getElementById('b4-f-s2');
+
+      inputM1S1.value = b.m1[0];
+      inputM1S2.value = b.m1[1];
+      inputM2S1.value = b.m2[0];
+      inputM2S2.value = b.m2[1];
+      inputFS1.value = b.f[0];
+      inputFS2.value = b.f[1];
+
+      // 一旦有一方达到 2 胜，直接锁定该对局输入框
+      inputM1S1.disabled = (b.m1[0] >= 2 || b.m1[1] >= 2);
+      inputM1S2.disabled = (b.m1[0] >= 2 || b.m1[1] >= 2);
+      inputM2S1.disabled = (b.m2[0] >= 2 || b.m2[1] >= 2);
+      inputM2S2.disabled = (b.m2[0] >= 2 || b.m2[1] >= 2);
+      inputFS1.disabled = (b.f[0] >= 2 || b.f[1] >= 2);
+      inputFS2.disabled = (b.f[0] >= 2 || b.f[1] >= 2);
 
       document.getElementById('b4-t1-name').innerText = b.t[0];
       document.getElementById('b4-t2-name').innerText = b.t[1];
@@ -746,10 +799,8 @@
       document.getElementById('b4-t3-dots').innerText = getDots(b.m2[0]);
       document.getElementById('b4-t4-dots').innerText = getDots(b.m2[1]);
 
-      // 锁定判定：当达 2 胜时高亮 WIN，且禁言超额加分
       document.getElementById('b4-t1-tag').classList.toggle('hidden', b.m1[0] < 2);
       document.getElementById('b4-t2-tag').classList.toggle('hidden', b.m1[1] < 2);
-      
       document.getElementById('b4-t3-tag').classList.toggle('hidden', b.m2[0] < 2);
       document.getElementById('b4-t4-tag').classList.toggle('hidden', b.m2[1] < 2);
 
@@ -793,12 +844,27 @@
     function renderMatch6() {
       const m = store.match6;
 
-      document.getElementById('m6-s1-1').value = m.s1[0];
-      document.getElementById('m6-s1-2').value = m.s1[1];
-      document.getElementById('m6-s2-1').value = m.s2[0];
-      document.getElementById('m6-s2-2').value = m.s2[1];
-      document.getElementById('m6-s3-1').value = m.s3[0];
-      document.getElementById('m6-s3-2').value = m.s3[1];
+      const inputS1_1 = document.getElementById('m6-s1-1');
+      const inputS1_2 = document.getElementById('m6-s1-2');
+      const inputS2_1 = document.getElementById('m6-s2-1');
+      const inputS2_2 = document.getElementById('m6-s2-2');
+      const inputS3_1 = document.getElementById('m6-s3-1');
+      const inputS3_2 = document.getElementById('m6-s3-2');
+
+      inputS1_1.value = m.s1[0];
+      inputS1_2.value = m.s1[1];
+      inputS2_1.value = m.s2[0];
+      inputS2_2.value = m.s2[1];
+      inputS3_1.value = m.s3[0];
+      inputS3_2.value = m.s3[1];
+
+      // 达 2 胜后锁定对应小组输入框
+      inputS1_1.disabled = (m.s1[0] >= 2 || m.s1[1] >= 2);
+      inputS1_2.disabled = (m.s1[0] >= 2 || m.s1[1] >= 2);
+      inputS2_1.disabled = (m.s2[0] >= 2 || m.s2[1] >= 2);
+      inputS2_2.disabled = (m.s2[0] >= 2 || m.s2[1] >= 2);
+      inputS3_1.disabled = (m.s3[0] >= 2 || m.s3[1] >= 2);
+      inputS3_2.disabled = (m.s3[0] >= 2 || m.s3[1] >= 2);
 
       document.getElementById('m6-t1').innerText = m.t[0];
       document.getElementById('m6-t2').innerText = m.t[1];
