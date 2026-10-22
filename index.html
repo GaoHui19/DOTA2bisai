@@ -16,282 +16,291 @@
       background: linear-gradient(145deg, #121820, #1a222d);
       border: 1px solid #2a3546;
     }
-    .dota-card-active {
-      border-color: #f59e0b;
-      box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
-    }
     .dota-btn-primary {
-      background: linear-gradient(135deg, #d97706, #b45309);
+      background: linear-gradient(135deg, #cc2929, #991b1b);
       color: white;
     }
     .dota-btn-primary:hover {
-      background: linear-gradient(135deg, #f59e0b, #d97706);
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+    }
+    .tab-btn {
+      border-bottom: 3px solid transparent;
+      color: #9ca3af;
+      transition: all 0.2s ease;
+    }
+    .tab-btn.active {
+      border-bottom-color: #ef4444;
+      color: #ffffff;
+      background-color: rgba(239, 68, 68, 0.1);
     }
   </style>
 </head>
 <body class="p-3 md:p-6 min-h-screen">
 
-  <div class="max-w-7xl mx-auto space-y-6">
+  <div class="max-w-7xl mx-auto space-y-4">
 
-    <!-- 顶部标题与云端配置 -->
-    <div class="dota-card rounded-xl p-4 md:p-6 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <!-- 顶部页头 -->
+    <div class="dota-card rounded-xl p-4 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       <div>
-        <h1 class="text-2xl md:text-3xl font-black text-amber-500 flex items-center gap-3">
+        <h1 class="text-2xl font-black text-red-500 flex items-center gap-3">
           <i class="fa-solid fa-trophy"></i> DOTA 2 赛事管理系统
         </h1>
-        <p class="text-xs md:text-sm text-gray-400 mt-1">多端实时同步 | 智能分路匹配 | 双赛制排期</p>
+        <p class="text-xs text-gray-400 mt-1">云端内置秒级同步 | 智能匹配 | 独立多赛制</p>
       </div>
 
-      <!-- 云端状态指示与配置 -->
-      <div class="w-full md:w-auto bg-gray-900/80 p-3 rounded-lg border border-gray-700 space-y-2">
-        <div class="flex items-center justify-between gap-4">
-          <div class="flex items-center gap-2">
-            <span id="sync-status-dot" class="w-3 h-3 rounded-full bg-red-500 inline-block animate-pulse"></span>
-            <span id="sync-status-text" class="text-xs font-semibold text-gray-300">云端未连接</span>
-          </div>
-          <button onclick="toggleConfigModal()" class="text-xs bg-amber-600/30 text-amber-400 hover:bg-amber-600/50 px-2.5 py-1 rounded border border-amber-500/30 transition">
-            <i class="fa-solid fa-gear mr-1"></i>配置/查看密钥
-          </button>
+      <!-- 云端状态 -->
+      <div class="w-full md:w-auto bg-gray-900/90 p-2.5 rounded-lg border border-gray-800 flex items-center justify-between gap-4 text-xs">
+        <div class="flex items-center gap-2">
+          <span id="sync-status-dot" class="w-2.5 h-2.5 rounded-full bg-red-500 inline-block animate-pulse"></span>
+          <span id="sync-status-text" class="text-gray-300 font-semibold">连接中...</span>
         </div>
-        <div class="text-[11px] text-gray-400 flex justify-between gap-2">
-          <span>上次同步: <span id="last-sync-time">未同步</span></span>
-          <span id="cloud-bin-id-display" class="text-amber-500/80 truncate max-w-[120px]">BIN: 6ad97d82...</span>
+        <div class="text-gray-400 text-[11px]">
+          上次同步: <span id="last-sync-time">--:--</span>
         </div>
       </div>
     </div>
 
-    <!-- 弹窗：JsonBin 密钥设置 -->
-    <div id="config-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div class="dota-card max-w-md w-full p-6 rounded-xl space-y-4 border border-amber-500/50 shadow-2xl">
-        <div class="flex justify-between items-center border-b border-gray-700 pb-3">
-          <h3 class="text-lg font-bold text-amber-400"><i class="fa-solid fa-cloud-arrow-up mr-2"></i>JsonBin 实时同步参数</h3>
-          <button onclick="toggleConfigModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        <p class="text-xs text-gray-300 leading-relaxed">
-          参数已内置绑定！手机和电脑打开本页面均会自动连接同一个云端。
-        </p>
-        <div class="space-y-3 text-sm">
-          <div>
-            <label class="block text-xs text-gray-400 mb-1">JsonBin Master Key</label>
-            <input type="password" id="cfg-master-key" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:border-amber-500 outline-none">
-          </div>
-          <div>
-            <label class="block text-xs text-gray-400 mb-1">JsonBin Bin ID</label>
-            <input type="text" id="cfg-bin-id" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:border-amber-500 outline-none">
-          </div>
-        </div>
-        <div class="flex justify-end gap-2 pt-2">
-          <button onclick="saveJsonBinConfig()" class="w-full dota-btn-primary py-2 rounded font-bold text-sm shadow">
-            重新保存并开启连接
-          </button>
-        </div>
+    <!-- 顶栏横向菜单栏 Tab Bar -->
+    <div class="dota-card rounded-xl overflow-hidden shadow-lg">
+      <div class="flex overflow-x-auto border-b border-gray-800 text-xs md:text-sm font-bold no-scrollbar">
+        <button onclick="switchTab('tab-register')" id="btn-tab-register" class="tab-btn active px-5 py-3.5 flex items-center gap-2 whitespace-nowrap">
+          <i class="fa-solid fa-user-plus text-red-400"></i> 选手报名 & 选手池
+          <span id="badge-players" class="bg-red-950 text-red-400 border border-red-800 px-2 py-0.5 rounded-full text-[11px]">0 人</span>
+        </button>
+        <button onclick="switchTab('tab-teams')" id="btn-tab-teams" class="tab-btn px-5 py-3.5 flex items-center gap-2 whitespace-nowrap">
+          <i class="fa-solid fa-people-group text-amber-400"></i> 智能匹配组队
+          <span id="badge-teams" class="bg-amber-950 text-amber-400 border border-amber-800 px-2 py-0.5 rounded-full text-[11px]">0 队</span>
+        </button>
+        <button onclick="switchTab('tab-bracket4')" id="btn-tab-bracket4" class="tab-btn px-5 py-3.5 flex items-center gap-2 whitespace-nowrap">
+          <i class="fa-solid fa-sitemap text-blue-400"></i> 4强淘汰赛 (BO1/BO3)
+        </button>
+        <button onclick="switchTab('tab-match6')" id="btn-tab-match6" class="tab-btn px-5 py-3.5 flex items-center gap-2 whitespace-nowrap">
+          <i class="fa-solid fa-swords text-emerald-400"></i> 6队两两对决 (BO3)
+        </button>
       </div>
     </div>
 
-    <!-- 主体区域：选手报名 + 选手机制 -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-      <!-- 左侧：报名表单 -->
+    <!-- 页面 1: 选手报名 & 选手池 -->
+    <div id="tab-register" class="tab-content grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- 报名表单 -->
       <div class="dota-card rounded-xl p-5 shadow-lg space-y-4">
-        <h2 class="text-lg font-bold text-amber-400 flex items-center gap-2 border-b border-gray-700 pb-2">
-          <i class="fa-solid fa-user-plus"></i> 选手报名通道
-        </h2>
+        <div class="flex justify-between items-center border-b border-gray-800 pb-2">
+          <h2 class="text-base font-bold text-red-400 flex items-center gap-2">
+            <i class="fa-solid fa-id-card"></i> 选手报名表单
+          </h2>
+          <span class="text-[11px] text-emerald-400 flex items-center gap-1"><i class="fa-solid fa-cloud"></i> 自动实时同步</span>
+        </div>
 
-        <form id="reg-form" onsubmit="handleRegister(event)" class="space-y-3 text-sm">
+        <form id="reg-form" onsubmit="handleRegister(event)" class="space-y-3 text-xs">
           <div>
-            <label class="block text-xs text-gray-400 mb-1">游戏昵称</label>
-            <input type="text" id="reg-name" required placeholder="如: Miracle-" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:border-amber-500 outline-none">
+            <label class="block text-gray-400 mb-1">游戏昵称 (Steam / Dota 2)</label>
+            <input type="text" id="reg-name" required placeholder="例如: Miracle-" class="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-white focus:border-red-500 outline-none">
           </div>
           <div>
-            <label class="block text-xs text-gray-400 mb-1">Dota 2 数字 ID (纯数字)</label>
-            <input type="text" id="reg-id" required pattern="\d+" placeholder="如: 106863163" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:border-amber-500 outline-none">
+            <label class="block text-gray-400 mb-1">Dota 2 数字 ID (仅纯数字，防止重复)</label>
+            <input type="text" id="reg-id" required pattern="\d+" placeholder="例如: 106863163" class="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-white focus:border-red-500 outline-none">
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
-              <label class="block text-xs text-gray-400 mb-1">段位天梯分</label>
-              <input type="number" id="reg-mmr" min="0" max="12000" required placeholder="如: 4500" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:border-amber-500 outline-none">
+              <label class="block text-gray-400 mb-1">预估 MMR</label>
+              <input type="number" id="reg-mmr" min="0" max="12000" required placeholder="如 4500" class="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-white focus:border-red-500 outline-none">
             </div>
             <div>
-              <label class="block text-xs text-gray-400 mb-1">首选偏好分路</label>
-              <select id="reg-pos" required class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:border-amber-500 outline-none">
-                <option value="1">1号位 (核心Carry)</option>
-                <option value="2">2号位 (中单Mid)</option>
-                <option value="3">3号位 (劣单Offlane)</option>
-                <option value="4">4号位 (游走Support)</option>
-                <option value="5">5号位 (辅助Support)</option>
+              <label class="block text-gray-400 mb-1">常规/主打位置</label>
+              <select id="reg-pos" required class="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-white focus:border-red-500 outline-none">
+                <option value="1">1号位 - 核心 (Carry)</option>
+                <option value="2">2号位 - 中单 (Mid)</option>
+                <option value="3">3号位 - 劣单 (Offlane)</option>
+                <option value="4">4号位 - 游走 (Support)</option>
+                <option value="5">5号位 - 辅助 (Support)</option>
               </select>
             </div>
           </div>
-          <button type="submit" class="w-full dota-btn-primary py-2.5 rounded font-bold text-sm shadow hover:brightness-110 transition mt-2">
-            确认提交报名
+          <button type="submit" class="w-full dota-btn-primary py-2.5 rounded font-bold text-sm shadow hover:brightness-110 transition mt-2 flex items-center justify-center gap-2">
+            <i class="fa-solid fa-user-plus"></i> 提交报名
           </button>
         </form>
       </div>
 
-      <!-- 右侧：报名选手池 (含自动划除/移出) -->
+      <!-- 选手池展示 -->
       <div class="lg:col-span-2 dota-card rounded-xl p-5 shadow-lg space-y-4">
-        <div class="flex flex-wrap justify-between items-center gap-2 border-b border-gray-700 pb-2">
-          <h2 class="text-lg font-bold text-amber-400 flex items-center gap-2">
-            <i class="fa-solid fa-users"></i> 选手数据池 
-            <span id="player-count-badge" class="text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/30">0 人</span>
+        <div class="flex justify-between items-center border-b border-gray-800 pb-2">
+          <h2 class="text-base font-bold text-red-400 flex items-center gap-2">
+            <i class="fa-solid fa-users"></i> 已报名选手大池
           </h2>
+          <span class="text-xs text-gray-400">已入队选手会自动灰色划线</span>
+        </div>
+        <div id="player-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-[460px] overflow-y-auto pr-1">
+          <!-- 动态选手列表 -->
+        </div>
+      </div>
+    </div>
 
-          <!-- 自动匹配控制按键 -->
-          <div class="flex items-center gap-2">
-            <select id="match-team-count" class="bg-gray-900 border border-gray-700 text-xs rounded px-2 py-1.5 text-white outline-none">
-              <option value="2">生成 2 支队伍 (10人)</option>
-              <option value="4">生成 4 支队伍 (20人)</option>
-              <option value="6">生成 6 支队伍 (30人)</option>
-            </select>
-            <button onclick="generateMatchmaking()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-1.5 rounded font-bold transition shadow">
-              <i class="fa-solid fa-wand-magic-sparkles mr-1"></i>智能平衡组队
-            </button>
-          </div>
+    <!-- 页面 2: 综合实力 智能匹配组队 -->
+    <div id="tab-teams" class="tab-content hidden dota-card rounded-xl p-5 shadow-lg space-y-4">
+      <div class="flex flex-wrap justify-between items-center gap-3 border-b border-gray-800 pb-3">
+        <div>
+          <h2 class="text-lg font-bold text-amber-400 flex items-center gap-2">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> 综合战力与位置智能平衡组队
+          </h2>
+          <p class="text-xs text-gray-400">算法自动兼顾 1-5 号位置完整性与团队天梯平均分</p>
         </div>
 
-        <!-- 选手列表 -->
-        <div id="player-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-[380px] overflow-y-auto pr-1">
-          <!-- 动态渲染选手 -->
+        <div class="flex items-center gap-2">
+          <select id="match-team-count" class="bg-gray-950 border border-gray-800 text-xs rounded px-3 py-2 text-white outline-none">
+            <option value="2">生成 2 支队伍 (10人)</option>
+            <option value="4">生成 4 支队伍 (20人)</option>
+            <option value="6">生成 6 支队伍 (30人)</option>
+          </select>
+          <button onclick="generateMatchmaking()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-4 py-2 rounded font-bold transition shadow">
+            一键智能匹配
+          </button>
+          <button onclick="clearTeams()" class="bg-red-950 hover:bg-red-900 border border-red-800 text-red-400 text-xs px-3 py-2 rounded font-bold transition">
+            解散队伍
+          </button>
         </div>
       </div>
 
+      <div id="teams-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 min-h-[300px]">
+        <!-- 动态战队列表 -->
+      </div>
     </div>
 
-    <!-- 队伍显示板块 -->
-    <div class="dota-card rounded-xl p-5 shadow-lg space-y-4">
-      <div class="flex justify-between items-center border-b border-gray-700 pb-2">
-        <h2 class="text-lg font-bold text-amber-400 flex items-center gap-2">
-          <i class="fa-solid fa-shield-halved"></i> 已匹配队伍展示 (已组队选手自动从待选池划除)
-        </h2>
-        <button onclick="clearTeams()" class="text-xs text-red-400 hover:text-red-300 hover:underline">
-          <i class="fa-solid fa-trash-can mr-1"></i>解散所有队伍
+    <!-- 页面 3: 4强淘汰赛 (4进2进1) -->
+    <div id="tab-bracket4" class="tab-content hidden dota-card rounded-xl p-5 shadow-lg space-y-4">
+      <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+        <div>
+          <h2 class="text-lg font-bold text-blue-400 flex items-center gap-2">
+            <i class="fa-solid fa-sitemap"></i> 4强淘汰赛 (4进2进1)
+          </h2>
+          <p class="text-xs text-gray-400">半决赛胜者自动晋级总决赛决出冠军</p>
+        </div>
+        <button onclick="syncTeamsToBracket4()" class="text-xs bg-blue-950 border border-blue-800 text-blue-300 hover:bg-blue-900 px-3 py-2 rounded font-bold">
+          一键导入已匹配前4队
         </button>
       </div>
 
-      <div id="teams-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <!-- 动态生成队伍卡片 -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs pt-2">
+        <!-- 半决赛 -->
+        <div class="space-y-3">
+          <h3 class="font-bold text-gray-300">半决赛</h3>
+          <div class="bg-gray-950 p-4 rounded-lg border border-gray-800 space-y-3">
+            <div class="flex items-center justify-between gap-2">
+              <span id="b4-t1-name" class="font-bold text-blue-400 truncate w-24">战队 1</span>
+              <div class="flex items-center gap-1">
+                <input type="number" id="b4-m1-s1" onchange="updateBracket4()" min="0" value="0" class="w-12 bg-gray-900 text-center rounded py-1 text-white font-bold">
+                <span>:</span>
+                <input type="number" id="b4-m1-s2" onchange="updateBracket4()" min="0" value="0" class="w-12 bg-gray-900 text-center rounded py-1 text-white font-bold">
+              </div>
+              <span id="b4-t2-name" class="font-bold text-blue-400 truncate w-24 text-right">战队 2</span>
+            </div>
+            <div class="border-t border-gray-800 pt-3 flex items-center justify-between gap-2">
+              <span id="b4-t3-name" class="font-bold text-blue-400 truncate w-24">战队 3</span>
+              <div class="flex items-center gap-1">
+                <input type="number" id="b4-m2-s1" onchange="updateBracket4()" min="0" value="0" class="w-12 bg-gray-900 text-center rounded py-1 text-white font-bold">
+                <span>:</span>
+                <input type="number" id="b4-m2-s2" onchange="updateBracket4()" min="0" value="0" class="w-12 bg-gray-900 text-center rounded py-1 text-white font-bold">
+              </div>
+              <span id="b4-t4-name" class="font-bold text-blue-400 truncate w-24 text-right">战队 4</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 决赛 & 冠军 -->
+        <div class="space-y-3">
+          <h3 class="font-bold text-amber-400">总决赛</h3>
+          <div class="bg-amber-950/20 p-4 rounded-lg border border-amber-800/40 space-y-4">
+            <div class="flex justify-between items-center">
+              <span id="b4-f1-name" class="font-bold text-gray-200">胜者 1</span>
+              <div class="flex items-center gap-2">
+                <input type="number" id="b4-f-s1" onchange="updateBracket4()" min="0" value="0" class="w-12 bg-gray-900 text-center rounded py-1 text-amber-400 font-bold">
+                <span>-</span>
+                <input type="number" id="b4-f-s2" onchange="updateBracket4()" min="0" value="0" class="w-12 bg-gray-900 text-center rounded py-1 text-amber-400 font-bold">
+              </div>
+              <span id="b4-f2-name" class="font-bold text-gray-200">胜者 2</span>
+            </div>
+            <div class="text-center border-t border-amber-800/30 pt-3">
+              <span class="text-xs text-gray-400">最终总冠军</span>
+              <div id="b4-winner-name" class="text-lg font-black text-amber-400 mt-1">🏆 未决出</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- 赛事赛制板块 -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-      <!-- 赛制 1: 4强淘汰赛 (4进2进1) -->
-      <div class="dota-card rounded-xl p-5 shadow-lg space-y-4">
-        <div class="flex justify-between items-center border-b border-gray-700 pb-2">
-          <h3 class="font-bold text-amber-400 flex items-center gap-2">
-            <i class="fa-solid fa-sitemap"></i> 4强淘汰赛 (4进2进1)
-          </h3>
-          <button onclick="syncTeamsToBracket4()" class="text-xs bg-amber-600/30 text-amber-300 hover:bg-amber-600/50 px-2 py-1 rounded">
-            导入已匹配前4队
-          </button>
+    <!-- 页面 4: 6队对决 (6进3) -->
+    <div id="tab-match6" class="tab-content hidden dota-card rounded-xl p-5 shadow-lg space-y-4">
+      <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+        <div>
+          <h2 class="text-lg font-bold text-emerald-400 flex items-center gap-2">
+            <i class="fa-solid fa-swords"></i> 6队两两对决 (BO3 决出3支胜者)
+          </h2>
+          <p class="text-xs text-gray-400">6支队伍分为 A、B、C 3组进行 BO3 对局</p>
         </div>
-
-        <div class="space-y-4 text-xs">
-          <!-- 半决赛 -->
-          <div class="bg-gray-900/60 p-3 rounded border border-gray-800 space-y-2">
-            <div class="font-semibold text-gray-400">半决赛 (BO1/BO3)</div>
-            <div class="grid grid-cols-2 gap-2">
-              <div class="flex items-center gap-1">
-                <span id="b4-t1-name" class="font-bold text-amber-400 truncate w-20">战队1</span>
-                <input type="number" id="b4-m1-s1" onchange="updateBracket4()" min="0" value="0" class="w-10 bg-gray-800 text-center rounded text-white py-1">
-                <span>:</span>
-                <input type="number" id="b4-m1-s2" onchange="updateBracket4()" min="0" value="0" class="w-10 bg-gray-800 text-center rounded text-white py-1">
-                <span id="b4-t2-name" class="font-bold text-amber-400 truncate w-20 text-right">战队2</span>
-              </div>
-              <div class="flex items-center gap-1">
-                <span id="b4-t3-name" class="font-bold text-amber-400 truncate w-20">战队3</span>
-                <input type="number" id="b4-m2-s1" onchange="updateBracket4()" min="0" value="0" class="w-10 bg-gray-800 text-center rounded text-white py-1">
-                <span>:</span>
-                <input type="number" id="b4-m2-s2" onchange="updateBracket4()" min="0" value="0" class="w-10 bg-gray-800 text-center rounded text-white py-1">
-                <span id="b4-t4-name" class="font-bold text-amber-400 truncate w-20 text-right">战队4</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- 决赛 -->
-          <div class="bg-amber-950/20 p-3 rounded border border-amber-800/40 space-y-2">
-            <div class="font-semibold text-amber-400 flex justify-between">
-              <span>总决赛</span>
-              <span class="text-amber-500 font-bold">🏆 冠军: <span id="b4-winner-name">未决出</span></span>
-            </div>
-            <div class="flex justify-center items-center gap-3">
-              <span id="b4-f1-name" class="font-bold text-gray-200">胜者 1</span>
-              <input type="number" id="b4-f-s1" onchange="updateBracket4()" min="0" value="0" class="w-12 bg-gray-800 text-center rounded text-white font-bold py-1">
-              <span>-</span>
-              <input type="number" id="b4-f-s2" onchange="updateBracket4()" min="0" value="0" class="w-12 bg-gray-800 text-center rounded text-white font-bold py-1">
-              <span id="b4-f2-name" class="font-bold text-gray-200">胜者 2</span>
-            </div>
-          </div>
-        </div>
+        <button onclick="syncTeamsToMatch6()" class="text-xs bg-emerald-950 border border-emerald-800 text-emerald-300 hover:bg-emerald-900 px-3 py-2 rounded font-bold">
+          一键导入已匹配6队伍
+        </button>
       </div>
 
-      <!-- 赛制 2: 6队对决战 (BO3 三局两胜 决出3胜者) -->
-      <div class="dota-card rounded-xl p-5 shadow-lg space-y-4">
-        <div class="flex justify-between items-center border-b border-gray-700 pb-2">
-          <h3 class="font-bold text-amber-400 flex items-center gap-2">
-            <i class="fa-solid fa-swords"></i> 6队循环/两两对决 (BO3 决出3支胜者)
-          </h3>
-          <button onclick="syncTeamsToMatch6()" class="text-xs bg-amber-600/30 text-amber-300 hover:bg-amber-600/50 px-2 py-1 rounded">
-            导入已匹配6队伍
-          </button>
+      <div class="space-y-3 text-xs pt-2">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- 对局 A -->
+          <div class="bg-gray-950 p-3 rounded-lg border border-gray-800 space-y-2">
+            <div class="text-gray-400 font-semibold">对局 A</div>
+            <div class="flex items-center justify-between">
+              <span id="m6-t1" class="font-bold text-emerald-400 truncate w-20">队伍 1</span>
+              <div class="flex items-center gap-1">
+                <input type="number" id="m6-s1-1" onchange="updateMatch6()" min="0" max="2" value="0" class="w-10 bg-gray-900 text-center rounded py-1 text-white">
+                <span>:</span>
+                <input type="number" id="m6-s1-2" onchange="updateMatch6()" min="0" max="2" value="0" class="w-10 bg-gray-900 text-center rounded py-1 text-white">
+              </div>
+              <span id="m6-t2" class="font-bold text-emerald-400 truncate w-20 text-right">队伍 2</span>
+            </div>
+          </div>
+
+          <!-- 对局 B -->
+          <div class="bg-gray-950 p-3 rounded-lg border border-gray-800 space-y-2">
+            <div class="text-gray-400 font-semibold">对局 B</div>
+            <div class="flex items-center justify-between">
+              <span id="m6-t3" class="font-bold text-emerald-400 truncate w-20">队伍 3</span>
+              <div class="flex items-center gap-1">
+                <input type="number" id="m6-s2-1" onchange="updateMatch6()" min="0" max="2" value="0" class="w-10 bg-gray-900 text-center rounded py-1 text-white">
+                <span>:</span>
+                <input type="number" id="m6-s2-2" onchange="updateMatch6()" min="0" max="2" value="0" class="w-10 bg-gray-900 text-center rounded py-1 text-white">
+              </div>
+              <span id="m6-t4" class="font-bold text-emerald-400 truncate w-20 text-right">队伍 4</span>
+            </div>
+          </div>
+
+          <!-- 对局 C -->
+          <div class="bg-gray-950 p-3 rounded-lg border border-gray-800 space-y-2">
+            <div class="text-gray-400 font-semibold">对局 C</div>
+            <div class="flex items-center justify-between">
+              <span id="m6-t5" class="font-bold text-emerald-400 truncate w-20">队伍 5</span>
+              <div class="flex items-center gap-1">
+                <input type="number" id="m6-s3-1" onchange="updateMatch6()" min="0" max="2" value="0" class="w-10 bg-gray-900 text-center rounded py-1 text-white">
+                <span>:</span>
+                <input type="number" id="m6-s3-2" onchange="updateMatch6()" min="0" max="2" value="0" class="w-10 bg-gray-900 text-center rounded py-1 text-white">
+              </div>
+              <span id="m6-t6" class="font-bold text-emerald-400 truncate w-20 text-right">队伍 6</span>
+            </div>
+          </div>
         </div>
 
-        <div class="space-y-3 text-xs">
-          <!-- 3组对决 -->
-          <div class="grid grid-cols-1 gap-2">
-            <!-- 对局 A -->
-            <div class="bg-gray-900/60 p-2.5 rounded border border-gray-800 flex items-center justify-between">
-              <span id="m6-t1" class="font-bold text-amber-400 truncate w-24">队伍 1</span>
-              <div class="flex items-center gap-1">
-                <input type="number" id="m6-s1-1" onchange="updateMatch6()" min="0" max="2" value="0" class="w-10 bg-gray-800 text-center rounded py-0.5">
-                <span>:</span>
-                <input type="number" id="m6-s1-2" onchange="updateMatch6()" min="0" max="2" value="0" class="w-10 bg-gray-800 text-center rounded py-0.5">
-              </div>
-              <span id="m6-t2" class="font-bold text-amber-400 truncate w-24 text-right">队伍 2</span>
-            </div>
-
-            <!-- 对局 B -->
-            <div class="bg-gray-900/60 p-2.5 rounded border border-gray-800 flex items-center justify-between">
-              <span id="m6-t3" class="font-bold text-amber-400 truncate w-24">队伍 3</span>
-              <div class="flex items-center gap-1">
-                <input type="number" id="m6-s2-1" onchange="updateMatch6()" min="0" max="2" value="0" class="w-10 bg-gray-800 text-center rounded py-0.5">
-                <span>:</span>
-                <input type="number" id="m6-s2-2" onchange="updateMatch6()" min="0" max="2" value="0" class="w-10 bg-gray-800 text-center rounded py-0.5">
-              </div>
-              <span id="m6-t4" class="font-bold text-amber-400 truncate w-24 text-right">队伍 4</span>
-            </div>
-
-            <!-- 对局 C -->
-            <div class="bg-gray-900/60 p-2.5 rounded border border-gray-800 flex items-center justify-between">
-              <span id="m6-t5" class="font-bold text-amber-400 truncate w-24">队伍 5</span>
-              <div class="flex items-center gap-1">
-                <input type="number" id="m6-s3-1" onchange="updateMatch6()" min="0" max="2" value="0" class="w-10 bg-gray-800 text-center rounded py-0.5">
-                <span>:</span>
-                <input type="number" id="m6-s3-2" onchange="updateMatch6()" min="0" max="2" value="0" class="w-10 bg-gray-800 text-center rounded py-0.5">
-              </div>
-              <span id="m6-t6" class="font-bold text-amber-400 truncate w-24 text-right">队伍 6</span>
-            </div>
-          </div>
-
-          <!-- 3支获胜队伍展示 -->
-          <div class="bg-emerald-950/30 p-2.5 rounded border border-emerald-800/40 text-emerald-400 font-semibold flex items-center justify-between">
-            <span>🎉 晋级/获胜三支战队：</span>
-            <span id="m6-winners" class="font-bold text-white">等待对决结果...</span>
-          </div>
+        <div class="bg-emerald-950/20 p-3 rounded-lg border border-emerald-800/30 text-emerald-400 font-semibold flex items-center justify-between text-sm mt-4">
+          <span>🎉 获胜/晋级三支战队汇总：</span>
+          <span id="m6-winners" class="font-bold text-white">等待对决结果...</span>
         </div>
       </div>
-
     </div>
 
   </div>
 
   <script>
-    // 预设默认配置 (绑定的云端 Key 与 Bin ID)
-    const DEFAULT_MASTER_KEY = '$2a$10$H6/1k6xZrhDZrng0EcZVyOYg3ZOBe5YmYZnO2iYMiVkJA1qv8UmXi';
-    const DEFAULT_BIN_ID = '6ad97d82ffd5d16053816197';
+    // 直接内置写死固定的云端密钥与 Bin ID
+    const MASTER_KEY = '$2a$10$H6/1k6xZrhDZrng0EcZVyOYg3ZOBe5YmYZnO2iYMiVkJA1qv8UmXi';
+    const BIN_ID = '6ad97d82ffd5d16053816197';
 
-    // 全局数据结构
     let store = {
       players: [],
       teams: [],
@@ -299,49 +308,28 @@
       match6: { t: ['队伍1','队伍2','队伍3','队伍4','队伍5','队伍6'], s1:[0,0], s2:[0,0], s3:[0,0] }
     };
 
-    let config = { masterKey: DEFAULT_MASTER_KEY, binId: DEFAULT_BIN_ID };
     let syncTimer = null;
     let isLocalUpdating = false;
 
-    // 页面加载完成初始化
     window.onload = () => {
-      loadConfig();
       renderAll();
       startAutoSync();
-      pullFromCloud(); // 立即连接并读取云端数据
+      pullFromCloud();
     };
 
-    function loadConfig() {
-      config.masterKey = localStorage.getItem('dota2_jsonbin_key') || DEFAULT_MASTER_KEY;
-      config.binId = localStorage.getItem('dota2_jsonbin_id') || DEFAULT_BIN_ID;
-      document.getElementById('cfg-master-key').value = config.masterKey;
-      document.getElementById('cfg-bin-id').value = config.binId;
-      document.getElementById('cloud-bin-id-display').innerText = 'BIN: ' + config.binId.substring(0, 8) + '...';
-    }
-
-    function toggleConfigModal() {
-      document.getElementById('config-modal').classList.toggle('hidden');
-    }
-
-    function saveJsonBinConfig() {
-      const key = document.getElementById('cfg-master-key').value.trim();
-      const id = document.getElementById('cfg-bin-id').value.trim();
-      if (!key || !id) return alert('请完整填写 Key 与 Bin ID！');
+    // Tab 切换逻辑
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
       
-      config.masterKey = key;
-      config.binId = id;
-      localStorage.setItem('dota2_jsonbin_key', key);
-      localStorage.setItem('dota2_jsonbin_id', id);
-      document.getElementById('cloud-bin-id-display').innerText = 'BIN: ' + id.substring(0, 8) + '...';
-      toggleConfigModal();
-      startAutoSync();
-      pullFromCloud();
+      document.getElementById(tabId).classList.remove('hidden');
+      document.getElementById('btn-' + tabId).classList.add('active');
     }
 
-    // 云端 3秒 自动轮询同步
+    // 云端 3 秒秒级同步引擎
     function startAutoSync() {
       if (syncTimer) clearInterval(syncTimer);
-      updateSyncStatus('connecting', '正在连接云端...');
+      updateSyncStatus('connecting', '连接中...');
       syncTimer = setInterval(() => {
         if (!isLocalUpdating) pullFromCloud();
       }, 3000);
@@ -351,46 +339,41 @@
       const dot = document.getElementById('sync-status-dot');
       document.getElementById('sync-status-text').innerText = msg;
       if (type === 'online') {
-        dot.className = "w-3 h-3 rounded-full bg-emerald-500 inline-block";
+        dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block";
       } else if (type === 'syncing') {
-        dot.className = "w-3 h-3 rounded-full bg-amber-500 inline-block animate-ping";
+        dot.className = "w-2.5 h-2.5 rounded-full bg-amber-500 inline-block animate-ping";
       } else {
-        dot.className = "w-3 h-3 rounded-full bg-red-500 inline-block";
+        dot.className = "w-2.5 h-2.5 rounded-full bg-red-500 inline-block";
       }
       document.getElementById('last-sync-time').innerText = new Date().toLocaleTimeString();
     }
 
-    // 上传至云端 (PUSH)
     async function pushToCloud() {
-      if (!config.masterKey || !config.binId) return;
       isLocalUpdating = true;
-      updateSyncStatus('syncing', '正在同步至云端...');
+      updateSyncStatus('syncing', '同步中...');
 
       try {
-        const res = await fetch(`https://api.jsonbin.io/v3/b/${config.binId}`, {
+        const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'X-Master-Key': config.masterKey
+            'X-Master-Key': MASTER_KEY
           },
           body: JSON.stringify(store)
         });
-        if (res.ok) updateSyncStatus('online', '多端已实时同步');
+        if (res.ok) updateSyncStatus('online', '已实时同步');
         else updateSyncStatus('error', '同步失败');
       } catch (e) {
-        updateSyncStatus('error', '网络异常');
+        updateSyncStatus('error', '网络离线');
       } finally {
         isLocalUpdating = false;
       }
     }
 
-    // 从云端拉取 (PULL)
     async function pullFromCloud() {
-      if (!config.masterKey || !config.binId) return;
-
       try {
-        const res = await fetch(`https://api.jsonbin.io/v3/b/${config.binId}/latest`, {
-          headers: { 'X-Master-Key': config.masterKey }
+        const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+          headers: { 'X-Master-Key': MASTER_KEY }
         });
         if (res.ok) {
           const cloudData = await res.json();
@@ -399,15 +382,15 @@
               store = cloudData.record;
               renderAll();
             }
-            updateSyncStatus('online', '多端已实时同步');
+            updateSyncStatus('online', '已实时同步');
           }
         }
       } catch (e) {
-        updateSyncStatus('error', '网络连接断开');
+        updateSyncStatus('error', '网络离线');
       }
     }
 
-    // 选手报名
+    // 选手注册与匹配逻辑
     function handleRegister(e) {
       e.preventDefault();
       const name = document.getElementById('reg-name').value.trim();
@@ -416,7 +399,7 @@
       const pos = parseInt(document.getElementById('reg-pos').value);
 
       if (store.players.some(p => p.id === id)) {
-        return alert('⚠️ 该 Dota 2 数字 ID 已经报名过，请勿重复输入！');
+        return alert('⚠️ 该 Dota 2 数字 ID 已经报名，无法重复报名！');
       }
 
       store.players.push({ name, id, mmr, pos, inTeam: false });
@@ -431,12 +414,11 @@
       pushToCloud();
     }
 
-    // 智能组队算法
     function generateMatchmaking() {
       const count = parseInt(document.getElementById('match-team-count').value);
       const needed = count * 5;
       if (store.players.length < needed) {
-        return alert(`目前需要 ${needed} 名选手，当前仅有 ${store.players.length} 人报名！`);
+        return alert(`生成 ${count} 支队伍需要 ${needed} 人，当前仅有 ${store.players.length} 人报名！`);
       }
 
       store.players.forEach(p => p.inTeam = false);
@@ -483,23 +465,23 @@
 
     function renderPlayers() {
       const container = document.getElementById('player-list');
-      document.getElementById('player-count-badge').innerText = `${store.players.length} 人`;
+      document.getElementById('badge-players').innerText = `${store.players.length} 人`;
       container.innerHTML = '';
 
       if (store.players.length === 0) {
-        container.innerHTML = `<p class="text-xs text-gray-500 col-span-full text-center py-6">暂无选手报名</p>`;
+        container.innerHTML = `<p class="text-xs text-gray-500 col-span-full text-center py-10">暂无选手报名</p>`;
         return;
       }
 
       store.players.forEach(p => {
         const div = document.createElement('div');
         div.className = `p-3 rounded-lg border flex justify-between items-center transition ${
-          p.inTeam ? 'bg-gray-900/40 border-gray-800 opacity-40 line-through' : 'bg-gray-900 border-gray-700 hover:border-amber-500/50'
+          p.inTeam ? 'bg-gray-950/40 border-gray-800 opacity-40 line-through' : 'bg-gray-950 border-gray-800 hover:border-red-500/50'
         }`;
         div.innerHTML = `
           <div>
-            <div class="font-bold text-sm text-gray-200">${p.name} <span class="text-xs text-amber-500 font-normal">(${p.mmr}分)</span></div>
-            <div class="text-[11px] text-gray-400">ID: ${p.id} | 首选: <span class="text-amber-400 font-semibold">${p.pos}号位</span></div>
+            <div class="font-bold text-xs text-gray-200">${p.name} <span class="text-red-400 font-normal">(${p.mmr}分)</span></div>
+            <div class="text-[11px] text-gray-400">ID: ${p.id} | <span class="text-amber-400 font-semibold">${p.pos}号位</span></div>
           </div>
           <button onclick="deletePlayer('${p.id}')" class="text-gray-500 hover:text-red-400 px-1.5"><i class="fa-solid fa-trash"></i></button>
         `;
@@ -509,29 +491,30 @@
 
     function renderTeams() {
       const container = document.getElementById('teams-container');
+      document.getElementById('badge-teams').innerText = `${store.teams.length} 队`;
       container.innerHTML = '';
 
       if (store.teams.length === 0) {
-        container.innerHTML = `<p class="text-xs text-gray-500 col-span-full text-center py-6">尚未生成队伍</p>`;
+        container.innerHTML = `<p class="text-xs text-gray-500 col-span-full text-center py-10">尚未进行匹配，点击右上角“一键智能匹配”</p>`;
         return;
       }
 
       store.teams.forEach(t => {
         const avgMmr = Math.round(t.members.reduce((sum, m) => sum + m.mmr, 0) / t.members.length || 0);
         const div = document.createElement('div');
-        div.className = "bg-gray-900/80 border border-gray-700 rounded-lg p-3 space-y-2";
+        div.className = "bg-gray-950 border border-gray-800 rounded-lg p-3 space-y-2";
         
         let membersHTML = t.members.map(m => `
-          <div class="flex justify-between items-center text-xs py-1 border-b border-gray-800">
-            <span class="text-gray-300"><span class="text-amber-500 font-bold mr-1">[${m.assignedPos}号位]</span>${m.name}</span>
+          <div class="flex justify-between items-center text-xs py-1 border-b border-gray-900">
+            <span class="text-gray-300"><span class="text-amber-400 font-bold mr-1">[${m.assignedPos}号位]</span>${m.name}</span>
             <span class="text-gray-400 text-[11px]">${m.mmr}分</span>
           </div>
         `).join('');
 
         div.innerHTML = `
-          <div class="flex justify-between items-center border-b border-gray-700 pb-1.5">
+          <div class="flex justify-between items-center border-b border-gray-800 pb-2">
             <span class="font-bold text-amber-400 text-sm">${t.name}</span>
-            <span class="text-xs text-gray-400">均分: <strong class="text-amber-500">${avgMmr}</strong></span>
+            <span class="text-xs text-gray-400">均分: <strong class="text-amber-400">${avgMmr}</strong></span>
           </div>
           <div class="space-y-0.5">${membersHTML}</div>
         `;
@@ -539,9 +522,8 @@
       });
     }
 
-    // 赛制控制
     function syncTeamsToBracket4() {
-      if (store.teams.length < 4) return alert('需要先匹配出至少 4 支队伍！');
+      if (store.teams.length < 4) return alert('需要先在组队页面匹配出至少 4 支队伍！');
       store.bracket4.t = store.teams.slice(0, 4).map(t => t.name);
       renderBracket4();
       pushToCloud();
@@ -567,14 +549,14 @@
       document.getElementById('b4-f1-name').innerText = f1;
       document.getElementById('b4-f2-name').innerText = f2;
 
-      let winner = '未决出';
-      if (b.f[0] > b.f[1]) winner = f1;
-      else if (b.f[1] > b.f[0]) winner = f2;
+      let winner = '🏆 未决出';
+      if (b.f[0] > b.f[1]) winner = '🏆 ' + f1;
+      else if (b.f[1] > b.f[0]) winner = '🏆 ' + f2;
       document.getElementById('b4-winner-name').innerText = winner;
     }
 
     function syncTeamsToMatch6() {
-      if (store.teams.length < 6) return alert('需要先匹配出 6 支队伍！');
+      if (store.teams.length < 6) return alert('需要先在组队页面匹配出 6 支队伍！');
       store.match6.t = store.teams.slice(0, 6).map(t => t.name);
       renderMatch6();
       pushToCloud();
