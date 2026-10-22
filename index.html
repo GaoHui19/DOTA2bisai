@@ -31,7 +31,14 @@
     .tab-btn.active {
       border-bottom-color: #ef4444;
       color: #ffffff;
-      background-color: rgba(239, 68, 68, 0.1);
+      background-color: rgba(239, 68, 68, 0.12);
+    }
+    /* ID 独立标签样式 */
+    .id-badge {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: #fbbf24;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
   </style>
 </head>
@@ -122,7 +129,7 @@
         </form>
       </div>
 
-      <!-- 选手池展示 (独占一行通栏列表) -->
+      <!-- 选手池展示 (ID 单独列出显示) -->
       <div class="lg:col-span-2 dota-card rounded-xl p-5 shadow-lg space-y-4">
         <div class="flex justify-between items-center border-b border-gray-800 pb-2">
           <h2 class="text-base font-bold text-red-400 flex items-center gap-2">
@@ -164,7 +171,7 @@
         </div>
       </div>
 
-      <div id="teams-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 min-h-[300px]">
+      <div id="teams-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 min-h-[300px]">
         <!-- 动态战队列表 -->
       </div>
     </div>
@@ -178,53 +185,68 @@
           </h2>
           <p class="text-xs text-gray-400">半决赛胜者自动晋级总决赛决出冠军</p>
         </div>
-        <button onclick="syncTeamsToBracket4()" class="text-xs bg-blue-950 border border-blue-800 text-blue-300 hover:bg-blue-900 px-3 py-2 rounded font-bold">
-          一键导入已匹配前4队
+        <button onclick="syncTeamsToBracket4()" class="text-xs bg-blue-950 border border-blue-800 text-blue-300 hover:bg-blue-900 px-3.5 py-2 rounded font-bold transition">
+          <i class="fa-solid fa-rotate mr-1"></i>一键导入已匹配前4队
         </button>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs pt-2">
-        <!-- 半决赛 -->
-        <div class="space-y-3">
-          <h3 class="font-bold text-gray-300">半决赛</h3>
-          <div class="bg-gray-950 p-4 rounded-lg border border-gray-800 space-y-3">
-            <div class="flex items-center justify-between gap-2">
-              <span id="b4-t1-name" class="font-bold text-blue-400 truncate w-24">战队 1</span>
-              <div class="flex items-center gap-1">
-                <input type="number" id="b4-m1-s1" onchange="updateBracket4()" min="0" value="0" class="w-12 bg-gray-900 text-center rounded py-1 text-white font-bold">
-                <span>:</span>
-                <input type="number" id="b4-m1-s2" onchange="updateBracket4()" min="0" value="0" class="w-12 bg-gray-900 text-center rounded py-1 text-white font-bold">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 text-xs pt-2 items-center">
+        <!-- 半决赛区 -->
+        <div class="lg:col-span-2 space-y-4">
+          <h3 class="font-bold text-gray-300 flex items-center gap-2 text-sm">
+            <span class="w-2 h-2 rounded-full bg-blue-500"></span> 半决赛 (BO1/BO3)
+          </h3>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- 比赛 1 -->
+            <div class="bg-gray-950/80 p-4 rounded-xl border border-gray-800 shadow space-y-3">
+              <div class="text-[11px] text-gray-400 font-bold border-b border-gray-900 pb-1">MATCH #1</div>
+              <div class="flex items-center justify-between">
+                <span id="b4-t1-name" class="font-bold text-blue-400 text-sm truncate max-w-[110px]">战队 1</span>
+                <input type="number" id="b4-m1-s1" onchange="updateBracket4()" min="0" value="0" class="w-12 bg-gray-900 border border-gray-700 text-center rounded py-1.5 text-white font-bold text-sm">
               </div>
-              <span id="b4-t2-name" class="font-bold text-blue-400 truncate w-24 text-right">战队 2</span>
+              <div class="flex items-center justify-between border-t border-gray-900 pt-2">
+                <span id="b4-t2-name" class="font-bold text-blue-400 text-sm truncate max-w-[110px]">战队 2</span>
+                <input type="number" id="b4-m1-s2" onchange="updateBracket4()" min="0" value="0" class="w-12 bg-gray-900 border border-gray-700 text-center rounded py-1.5 text-white font-bold text-sm">
+              </div>
             </div>
-            <div class="border-t border-gray-800 pt-3 flex items-center justify-between gap-2">
-              <span id="b4-t3-name" class="font-bold text-blue-400 truncate w-24">战队 3</span>
-              <div class="flex items-center gap-1">
-                <input type="number" id="b4-m2-s1" onchange="updateBracket4()" min="0" value="0" class="w-12 bg-gray-900 text-center rounded py-1 text-white font-bold">
-                <span>:</span>
-                <input type="number" id="b4-m2-s2" onchange="updateBracket4()" min="0" value="0" class="w-12 bg-gray-900 text-center rounded py-1 text-white font-bold">
+
+            <!-- 比赛 2 -->
+            <div class="bg-gray-950/80 p-4 rounded-xl border border-gray-800 shadow space-y-3">
+              <div class="text-[11px] text-gray-400 font-bold border-b border-gray-900 pb-1">MATCH #2</div>
+              <div class="flex items-center justify-between">
+                <span id="b4-t3-name" class="font-bold text-blue-400 text-sm truncate max-w-[110px]">战队 3</span>
+                <input type="number" id="b4-m2-s1" onchange="updateBracket4()" min="0" value="0" class="w-12 bg-gray-900 border border-gray-700 text-center rounded py-1.5 text-white font-bold text-sm">
               </div>
-              <span id="b4-t4-name" class="font-bold text-blue-400 truncate w-24 text-right">战队 4</span>
+              <div class="flex items-center justify-between border-t border-gray-900 pt-2">
+                <span id="b4-t4-name" class="font-bold text-blue-400 text-sm truncate max-w-[110px]">战队 4</span>
+                <input type="number" id="b4-m2-s2" onchange="updateBracket4()" min="0" value="0" class="w-12 bg-gray-900 border border-gray-700 text-center rounded py-1.5 text-white font-bold text-sm">
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- 决赛 & 冠军 -->
-        <div class="space-y-3">
-          <h3 class="font-bold text-amber-400">总决赛</h3>
-          <div class="bg-amber-950/20 p-4 rounded-lg border border-amber-800/40 space-y-4">
-            <div class="flex justify-between items-center">
-              <span id="b4-f1-name" class="font-bold text-gray-200">胜者 1</span>
-              <div class="flex items-center gap-2">
-                <input type="number" id="b4-f-s1" onchange="updateBracket4()" min="0" value="0" class="w-12 bg-gray-900 text-center rounded py-1 text-amber-400 font-bold">
-                <span>-</span>
-                <input type="number" id="b4-f-s2" onchange="updateBracket4()" min="0" value="0" class="w-12 bg-gray-900 text-center rounded py-1 text-amber-400 font-bold">
+        <!-- 总决赛区 -->
+        <div class="space-y-4">
+          <h3 class="font-bold text-amber-400 flex items-center gap-2 text-sm">
+            <span class="w-2 h-2 rounded-full bg-amber-500"></span> 总决赛 (FINAL)
+          </h3>
+          <div class="bg-gradient-to-b from-amber-950/30 to-gray-950 p-5 rounded-xl border border-amber-500/30 shadow-xl space-y-4 text-center">
+            <div class="flex justify-around items-center gap-2">
+              <div class="space-y-1">
+                <span id="b4-f1-name" class="font-bold text-gray-200 block text-sm truncate max-w-[90px]">胜者 1</span>
+                <input type="number" id="b4-f-s1" onchange="updateBracket4()" min="0" value="0" class="w-12 bg-gray-900 border border-amber-500/40 text-center rounded py-1.5 text-amber-400 font-bold text-base">
               </div>
-              <span id="b4-f2-name" class="font-bold text-gray-200">胜者 2</span>
+              <span class="text-amber-500/60 font-black text-lg">VS</span>
+              <div class="space-y-1">
+                <span id="b4-f2-name" class="font-bold text-gray-200 block text-sm truncate max-w-[90px]">胜者 2</span>
+                <input type="number" id="b4-f-s2" onchange="updateBracket4()" min="0" value="0" class="w-12 bg-gray-900 border border-amber-500/40 text-center rounded py-1.5 text-amber-400 font-bold text-base">
+              </div>
             </div>
-            <div class="text-center border-t border-amber-800/30 pt-3">
-              <span class="text-xs text-gray-400">最终总冠军</span>
-              <div id="b4-winner-name" class="text-lg font-black text-amber-400 mt-1">🏆 未决出</div>
+
+            <div class="border-t border-amber-800/30 pt-3">
+              <div class="text-[11px] text-amber-500/80 font-bold uppercase tracking-wider">CHAMPION</div>
+              <div id="b4-winner-name" class="text-xl font-black text-amber-400 mt-1 drop-shadow">🏆 未决出</div>
             </div>
           </div>
         </div>
@@ -240,59 +262,62 @@
           </h2>
           <p class="text-xs text-gray-400">6支队伍分为 A、B、C 3组进行 BO3 对局</p>
         </div>
-        <button onclick="syncTeamsToMatch6()" class="text-xs bg-emerald-950 border border-emerald-800 text-emerald-300 hover:bg-emerald-900 px-3 py-2 rounded font-bold">
-          一键导入已匹配6队伍
+        <button onclick="syncTeamsToMatch6()" class="text-xs bg-emerald-950 border border-emerald-800 text-emerald-300 hover:bg-emerald-900 px-3.5 py-2 rounded font-bold transition">
+          <i class="fa-solid fa-rotate mr-1"></i>一键导入已匹配6队伍
         </button>
       </div>
 
-      <div class="space-y-3 text-xs pt-2">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="space-y-4 text-xs pt-2">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
           <!-- 对局 A -->
-          <div class="bg-gray-950 p-3 rounded-lg border border-gray-800 space-y-2">
-            <div class="text-gray-400 font-semibold">对局 A</div>
-            <div class="flex items-center justify-between">
-              <span id="m6-t1" class="font-bold text-emerald-400 truncate w-20">队伍 1</span>
-              <div class="flex items-center gap-1">
-                <input type="number" id="m6-s1-1" onchange="updateMatch6()" min="0" max="2" value="0" class="w-10 bg-gray-900 text-center rounded py-1 text-white">
-                <span>:</span>
-                <input type="number" id="m6-s1-2" onchange="updateMatch6()" min="0" max="2" value="0" class="w-10 bg-gray-900 text-center rounded py-1 text-white">
-              </div>
-              <span id="m6-t2" class="font-bold text-emerald-400 truncate w-20 text-right">队伍 2</span>
+          <div class="bg-gray-950/80 p-4 rounded-xl border border-gray-800 space-y-3 shadow">
+            <div class="text-emerald-400 font-bold border-b border-gray-900 pb-1 flex justify-between">
+              <span>GROUP A</span>
+              <span class="text-[10px] text-gray-500">BO3</span>
+            </div>
+            <div class="flex items-center justify-between gap-2">
+              <span id="m6-t1" class="font-bold text-emerald-300 truncate w-24 text-sm">队伍 1</span>
+              <input type="number" id="m6-s1-1" onchange="updateMatch6()" min="0" max="2" value="0" class="w-10 bg-gray-900 border border-gray-700 text-center rounded py-1 text-white font-bold">
+              <span>:</span>
+              <input type="number" id="m6-s1-2" onchange="updateMatch6()" min="0" max="2" value="0" class="w-10 bg-gray-900 border border-gray-700 text-center rounded py-1 text-white font-bold">
+              <span id="m6-t2" class="font-bold text-emerald-300 truncate w-24 text-right text-sm">队伍 2</span>
             </div>
           </div>
 
           <!-- 对局 B -->
-          <div class="bg-gray-950 p-3 rounded-lg border border-gray-800 space-y-2">
-            <div class="text-gray-400 font-semibold">对局 B</div>
-            <div class="flex items-center justify-between">
-              <span id="m6-t3" class="font-bold text-emerald-400 truncate w-20">队伍 3</span>
-              <div class="flex items-center gap-1">
-                <input type="number" id="m6-s2-1" onchange="updateMatch6()" min="0" max="2" value="0" class="w-10 bg-gray-900 text-center rounded py-1 text-white">
-                <span>:</span>
-                <input type="number" id="m6-s2-2" onchange="updateMatch6()" min="0" max="2" value="0" class="w-10 bg-gray-900 text-center rounded py-1 text-white">
-              </div>
-              <span id="m6-t4" class="font-bold text-emerald-400 truncate w-20 text-right">队伍 4</span>
+          <div class="bg-gray-950/80 p-4 rounded-xl border border-gray-800 space-y-3 shadow">
+            <div class="text-emerald-400 font-bold border-b border-gray-900 pb-1 flex justify-between">
+              <span>GROUP B</span>
+              <span class="text-[10px] text-gray-500">BO3</span>
+            </div>
+            <div class="flex items-center justify-between gap-2">
+              <span id="m6-t3" class="font-bold text-emerald-300 truncate w-24 text-sm">队伍 3</span>
+              <input type="number" id="m6-s2-1" onchange="updateMatch6()" min="0" max="2" value="0" class="w-10 bg-gray-900 border border-gray-700 text-center rounded py-1 text-white font-bold">
+              <span>:</span>
+              <input type="number" id="m6-s2-2" onchange="updateMatch6()" min="0" max="2" value="0" class="w-10 bg-gray-900 border border-gray-700 text-center rounded py-1 text-white font-bold">
+              <span id="m6-t4" class="font-bold text-emerald-300 truncate w-24 text-right text-sm">队伍 4</span>
             </div>
           </div>
 
           <!-- 对局 C -->
-          <div class="bg-gray-950 p-3 rounded-lg border border-gray-800 space-y-2">
-            <div class="text-gray-400 font-semibold">对局 C</div>
-            <div class="flex items-center justify-between">
-              <span id="m6-t5" class="font-bold text-emerald-400 truncate w-20">队伍 5</span>
-              <div class="flex items-center gap-1">
-                <input type="number" id="m6-s3-1" onchange="updateMatch6()" min="0" max="2" value="0" class="w-10 bg-gray-900 text-center rounded py-1 text-white">
-                <span>:</span>
-                <input type="number" id="m6-s3-2" onchange="updateMatch6()" min="0" max="2" value="0" class="w-10 bg-gray-900 text-center rounded py-1 text-white">
-              </div>
-              <span id="m6-t6" class="font-bold text-emerald-400 truncate w-20 text-right">队伍 6</span>
+          <div class="bg-gray-950/80 p-4 rounded-xl border border-gray-800 space-y-3 shadow">
+            <div class="text-emerald-400 font-bold border-b border-gray-900 pb-1 flex justify-between">
+              <span>GROUP C</span>
+              <span class="text-[10px] text-gray-500">BO3</span>
+            </div>
+            <div class="flex items-center justify-between gap-2">
+              <span id="m6-t5" class="font-bold text-emerald-300 truncate w-24 text-sm">队伍 5</span>
+              <input type="number" id="m6-s3-1" onchange="updateMatch6()" min="0" max="2" value="0" class="w-10 bg-gray-900 border border-gray-700 text-center rounded py-1 text-white font-bold">
+              <span>:</span>
+              <input type="number" id="m6-s3-2" onchange="updateMatch6()" min="0" max="2" value="0" class="w-10 bg-gray-900 border border-gray-700 text-center rounded py-1 text-white font-bold">
+              <span id="m6-t6" class="font-bold text-emerald-300 truncate w-24 text-right text-sm">队伍 6</span>
             </div>
           </div>
         </div>
 
-        <div class="bg-emerald-950/20 p-3 rounded-lg border border-emerald-800/30 text-emerald-400 font-semibold flex items-center justify-between text-sm mt-4">
-          <span>🎉 获胜/晋级三支战队汇总：</span>
-          <span id="m6-winners" class="font-bold text-white">等待对决结果...</span>
+        <div class="bg-emerald-950/30 p-4 rounded-xl border border-emerald-500/30 text-emerald-400 font-semibold flex flex-col sm:flex-row items-center justify-between text-sm gap-2 mt-4 shadow-lg">
+          <span class="flex items-center gap-2"><i class="fa-solid fa-crown text-amber-400"></i> 获胜 / 晋级三支战队汇总：</span>
+          <span id="m6-winners" class="font-bold text-white text-base">等待对决结果...</span>
         </div>
       </div>
     </div>
@@ -466,6 +491,7 @@
       renderMatch6();
     }
 
+    // 渲染已报名选手池 (ID 独立清晰列出)
     function renderPlayers() {
       const container = document.getElementById('player-list');
       const countText = `${store.players.length} 人`;
@@ -478,29 +504,35 @@
         return;
       }
 
-      // 从上到下独占一行渲染
       store.players.forEach((p, index) => {
         const div = document.createElement('div');
-        div.className = `w-full p-3 rounded-lg border flex items-center justify-between transition ${
-          p.inTeam ? 'bg-gray-950/40 border-gray-800/80 opacity-40 line-through' : 'bg-gray-950 border-gray-800 hover:border-red-500/50'
+        div.className = `w-full p-3 rounded-lg border flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 transition ${
+          p.inTeam ? 'bg-gray-950/40 border-gray-800/80 opacity-40 line-through' : 'bg-gray-950 border-gray-800 hover:border-red-500/50 shadow'
         }`;
         div.innerHTML = `
+          <!-- 选手基础信息 -->
           <div class="flex items-center gap-3">
             <span class="text-xs text-gray-500 font-mono w-5">${index + 1}.</span>
-            <div class="w-7 h-7 rounded-full bg-red-950/60 border border-red-800/50 flex items-center justify-center text-red-400 font-bold text-xs">
+            <div class="w-8 h-8 rounded-full bg-red-950/60 border border-red-800/50 flex items-center justify-center text-red-400 font-bold text-xs">
               ${p.name.charAt(0).toUpperCase()}
             </div>
             <div>
               <div class="font-bold text-xs text-gray-200">${p.name} <span class="text-red-400 font-normal ml-1">(${p.mmr} 分)</span></div>
-              <div class="text-[11px] text-gray-400">数字 ID: ${p.id}</div>
             </div>
           </div>
 
-          <div class="flex items-center gap-4">
-            <span class="text-xs bg-amber-950/40 text-amber-400 border border-amber-800/40 px-2.5 py-0.5 rounded font-medium">
+          <!-- 独占包裹显示的 ID 标签 -->
+          <div class="flex items-center gap-3">
+            <div class="id-badge px-2.5 py-1 rounded text-xs flex items-center gap-1.5 font-bold shadow-sm">
+              <i class="fa-solid fa-hashtag text-[10px] text-amber-500/70"></i>
+              <span>${p.id}</span>
+            </div>
+
+            <span class="text-xs bg-amber-950/40 text-amber-400 border border-amber-800/40 px-2.5 py-1 rounded font-medium">
               ${p.pos}号位
             </span>
-            <button onclick="deletePlayer('${p.id}')" class="text-gray-500 hover:text-red-400 p-1 transition" title="删除选手">
+
+            <button onclick="deletePlayer('${p.id}')" class="text-gray-500 hover:text-red-400 p-1 transition ml-1" title="删除选手">
               <i class="fa-solid fa-trash-can"></i>
             </button>
           </div>
@@ -509,6 +541,7 @@
       });
     }
 
+    // 渲染匹配出的战队 (卡片化美化)
     function renderTeams() {
       const container = document.getElementById('teams-container');
       document.getElementById('badge-teams').innerText = `${store.teams.length} 队`;
@@ -522,19 +555,24 @@
       store.teams.forEach(t => {
         const avgMmr = Math.round(t.members.reduce((sum, m) => sum + m.mmr, 0) / t.members.length || 0);
         const div = document.createElement('div');
-        div.className = "bg-gray-950 border border-gray-800 rounded-lg p-3 space-y-2";
+        div.className = "bg-gray-950/90 border border-gray-800 rounded-xl p-4 space-y-3 shadow-lg hover:border-amber-500/40 transition";
         
         let membersHTML = t.members.map(m => `
-          <div class="flex justify-between items-center text-xs py-1 border-b border-gray-900">
-            <span class="text-gray-300"><span class="text-amber-400 font-bold mr-1">[${m.assignedPos}号位]</span>${m.name}</span>
-            <span class="text-gray-400 text-[11px]">${m.mmr}分</span>
+          <div class="flex justify-between items-center text-xs py-1.5 border-b border-gray-900/80">
+            <span class="text-gray-300 flex items-center gap-1.5">
+              <span class="text-[10px] bg-amber-950/60 text-amber-400 border border-amber-800/40 px-1.5 py-0.2 rounded font-bold">${m.assignedPos}号位</span>
+              <strong class="text-gray-200">${m.name}</strong>
+            </span>
+            <span class="text-gray-400 font-mono text-[11px]">${m.mmr}分</span>
           </div>
         `).join('');
 
         div.innerHTML = `
           <div class="flex justify-between items-center border-b border-gray-800 pb-2">
-            <span class="font-bold text-amber-400 text-sm">${t.name}</span>
-            <span class="text-xs text-gray-400">均分: <strong class="text-amber-400">${avgMmr}</strong></span>
+            <span class="font-bold text-amber-400 text-sm flex items-center gap-2">
+              <i class="fa-solid fa-shield text-amber-500/80"></i> ${t.name}
+            </span>
+            <span class="text-xs text-gray-400">平均分: <strong class="text-amber-400 font-mono">${avgMmr}</strong></span>
           </div>
           <div class="space-y-0.5">${membersHTML}</div>
         `;
