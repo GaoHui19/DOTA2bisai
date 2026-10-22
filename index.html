@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dota 2 赛事管理与多端实时同步平台</title>
+  <title>Dota 2 内战赛事管理平台</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <style>
@@ -55,9 +55,10 @@
     <div class="dota-card rounded-xl p-4 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       <div>
         <h1 class="text-2xl font-black text-red-500 flex items-center gap-3">
+          <i class="fa-solid fa-swords text-red-500"></i>
           <i class="fa-solid fa-trophy"></i> DOTA 2 赛事管理系统
         </h1>
-        <p class="text-xs text-gray-400 mt-1">云端内置秒级同步 | 赛果胜出自动锁定 | 分页一键重置</p>
+        <p class="text-xs text-gray-400 mt-1">云端秒级同步 | 冠军弹窗提醒 | 段位区间防断层组队</p>
       </div>
 
       <!-- 云端状态 -->
@@ -136,8 +137,8 @@
       <div class="lg:col-span-2 dota-card rounded-xl p-5 shadow-lg space-y-4">
         <div class="flex justify-between items-center border-b border-gray-800 pb-2">
           <h2 class="text-base font-bold text-red-400 flex items-center gap-2">
-            <i class="fa-solid fa-users"></i> 已报名选手大池
-            <span id="player-total-count" class="bg-red-950 text-red-400 border border-red-800 px-2.5 py-0.5 rounded-full text-xs font-bold ml-2">当前总数：0 人</span>
+            <i class="fa-solid fa-users"></i> 已报名选手大池 (按MMR从高到低排序)
+            <span id="player-total-count" class="bg-red-950 text-red-400 border border-red-800 px-2.5 py-0.5 rounded-full text-xs font-bold ml-2">0 人</span>
           </h2>
           <button onclick="resetRegisterData()" class="text-xs bg-red-950/60 border border-red-800 text-red-400 hover:bg-red-900 px-2.5 py-1 rounded font-bold transition">
             <i class="fa-solid fa-rotate-right mr-1"></i>重置报名数据
@@ -150,17 +151,23 @@
       </div>
     </div>
 
-    <!-- 页面 2: 综合实力 智能匹配组队 -->
+    <!-- 页面 2: 综合实力 智能匹配组队 (新增组队模式选项) -->
     <div id="tab-teams" class="tab-content hidden dota-card rounded-xl p-5 shadow-lg space-y-4">
       <div class="flex flex-wrap justify-between items-center gap-3 border-b border-gray-800 pb-3">
         <div>
           <h2 class="text-lg font-bold text-amber-400 flex items-center gap-2">
-            <i class="fa-solid fa-wand-magic-sparkles"></i> 综合战力与位置智能平衡组队
+            <i class="fa-solid fa-wand-magic-sparkles"></i> 综合天梯与段位区间智能组队
           </h2>
-          <p class="text-xs text-gray-400">使用不重复的动物战队命名 | 一行展示 2 支战队</p>
+          <p class="text-xs text-gray-400">支持自由平分或严格分数线段防实力断层组队</p>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- 组队模式选择 -->
+          <select id="team-mode" class="bg-gray-950 border border-gray-800 text-xs rounded px-3 py-2 text-amber-300 font-semibold outline-none">
+            <option value="balance">模式A：综合平分天梯组队 (全分段平衡)</option>
+            <option value="tier">模式B：严格分数线段组队 (防实力差距过大)</option>
+          </select>
+
           <select id="match-team-count" class="bg-gray-950 border border-gray-800 text-xs rounded px-3 py-2 text-white outline-none">
             <option value="2">生成 2 支队伍 (10人)</option>
             <option value="4">生成 4 支队伍 (20人)</option>
@@ -180,14 +187,14 @@
       </div>
     </div>
 
-    <!-- 页面 3: 4强淘汰赛 (BO3 三局两胜制，严格锁盘) -->
+    <!-- 页面 3: 4强淘汰赛 (BO3 三局两胜制，带冠军弹窗) -->
     <div id="tab-bracket4" class="tab-content hidden dota-card rounded-xl p-5 shadow-lg space-y-4">
       <div class="flex justify-between items-center border-b border-gray-800 pb-3">
         <div>
           <h2 class="text-lg font-bold text-blue-400 flex items-center gap-2">
             <i class="fa-solid fa-sitemap"></i> 4强淘汰赛 (BO3 三局两胜制)
           </h2>
-          <p class="text-xs text-gray-400">胜出后自动锁定，决出冠军。可点击重置按钮清空赛果。</p>
+          <p class="text-xs text-gray-400">冠军决出后触发全场弹窗提示！</p>
         </div>
         <div class="flex items-center gap-2">
           <button onclick="syncTeamsToBracket4()" class="text-xs bg-blue-950 border border-blue-800 text-blue-300 hover:bg-blue-900 px-3 py-2 rounded font-bold transition">
@@ -325,13 +332,13 @@
           <h2 class="text-lg font-bold text-emerald-400 flex items-center gap-2">
             <i class="fa-solid fa-swords"></i> 6队两两对决 (BO3 三局两胜制)
           </h2>
-          <p class="text-xs text-gray-400">率先获得 2 胜时自动判定胜出并锁定该组。可点击重置按钮清空赛果。</p>
+          <p class="text-xs text-gray-400">率先获得 2 胜时自动弹出对局获胜提示。</p>
         </div>
         <div class="flex items-center gap-2">
           <button onclick="syncTeamsToMatch6()" class="text-xs bg-emerald-950 border border-emerald-800 text-emerald-300 hover:bg-emerald-900 px-3.5 py-2 rounded font-bold transition">
             <i class="fa-solid fa-rotate mr-1"></i>导入6支队伍
           </button>
-          <button onclick="resetMatch6Data()" class="text-xs bg-red-950 border border-red-800 text-red-400 hover:bg-red-900 px-3.5 py-2 rounded font-bold transition">
+          <button onclick="resetMatch6Data()" class="text-xs bg-red-950 border border-red-800 text-red-400 hover:bg-red-900 px-3 py-2 rounded font-bold transition">
             <i class="fa-solid fa-rotate-right mr-1"></i>重置比赛
           </button>
         </div>
@@ -458,6 +465,9 @@
     let syncTimer = null;
     let isLocalUpdating = false;
 
+    // 弹窗提示防重复触发标记
+    let alertedWinners = { b4_m1: false, b4_m2: false, b4_f: false, m6_s1: false, m6_s2: false, m6_s3: false };
+
     window.onload = () => {
       renderAll();
       startAutoSync();
@@ -566,7 +576,6 @@
       pushToCloud();
     }
 
-    // 各页面专属重置函数
     function resetRegisterData() {
       if (confirm('确定要清空所有已报名的选手数据吗？')) {
         store.players = [];
@@ -578,6 +587,7 @@
     function resetBracket4Data() {
       if (confirm('确定要重置 4 强淘汰赛的所有对阵和比分吗？')) {
         store.bracket4 = { t: ['战队1','战队2','战队3','战队4'], m1:[0,0], m2:[0,0], f:[0,0] };
+        alertedWinners.b4_m1 = false; alertedWinners.b4_m2 = false; alertedWinners.b4_f = false;
         renderAll();
         pushToCloud();
       }
@@ -586,20 +596,22 @@
     function resetMatch6Data() {
       if (confirm('确定要重置 6 队对决的所有比分吗？')) {
         store.match6 = { t: ['队伍1','队伍2','队伍3','队伍4','队伍5','队伍6'], s1:[0,0], s2:[0,0], s3:[0,0] };
+        alertedWinners.m6_s1 = false; alertedWinners.m6_s2 = false; alertedWinners.m6_s3 = false;
         renderAll();
         pushToCloud();
       }
     }
 
+    // 核心智能组队算法：支持综合平分与区间分数线段组队
     function generateMatchmaking() {
       const count = parseInt(document.getElementById('match-team-count').value);
+      const mode = document.getElementById('team-mode').value;
       const needed = count * 5;
       if (store.players.length < needed) {
         return alert(`生成 ${count} 支队伍需要 ${needed} 人，当前仅有 ${store.players.length} 人报名！`);
       }
 
       store.players.forEach(p => p.inTeam = false);
-      let available = [...store.players].sort((a,b) => b.mmr - a.mmr);
       let shuffledAnimals = [...ANIMAL_NAMES].sort(() => 0.5 - Math.random());
 
       let teams = Array.from({ length: count }, (_, i) => ({
@@ -608,23 +620,68 @@
         members: []
       }));
 
-      for (let pos = 1; pos <= 5; pos++) {
-        let posPlayers = available.filter(p => p.pos === pos);
-        teams.forEach((team) => {
-          let selected = posPlayers.shift() || available.shift();
-          if (selected) {
-            selected.inTeam = true;
-            team.members.push({ ...selected, assignedPos: pos });
-            let realP = store.players.find(p => p.id === selected.id);
-            if (realP) realP.inTeam = true;
-            available = available.filter(p => p.id !== selected.id);
+      if (mode === 'tier') {
+        // 模式B：严格按照段位/分数线段（同分段相近选手）分配，防止断层
+        for (let pos = 1; pos <= 5; pos++) {
+          let posPlayers = store.players.filter(p => p.pos === pos).sort((a,b) => b.mmr - a.mmr);
+          // 将相同位置的选手按分数高低分成若干组，每组内随机分配到不同队伍
+          for (let i = 0; i < posPlayers.length; i += count) {
+            let chunk = posPlayers.slice(i, i + count).sort(() => 0.5 - Math.random());
+            chunk.forEach((p, tIdx) => {
+              if (teams[tIdx] && teams[tIdx].members.length < 5) {
+                p.inTeam = true;
+                teams[tIdx].members.push({ ...p, assignedPos: pos });
+              }
+            });
+          }
+        }
+        // 处理可能存在的未分配选手
+        let unassigned = store.players.filter(p => !p.inTeam).sort((a,b) => b.mmr - a.mmr);
+        teams.forEach(t => {
+          while (t.members.length < 5 && unassigned.length > 0) {
+            let p = unassigned.shift();
+            p.inTeam = true;
+            t.members.push({ ...p, assignedPos: p.pos });
+          }
+        });
+      } else {
+        // 模式A：综合平分天梯组队（蛇形排列法平衡实力）
+        let sortedPlayers = [...store.players].sort((a,b) => b.mmr - a.mmr);
+        for (let pos = 1; pos <= 5; pos++) {
+          let posPlayers = sortedPlayers.filter(p => p.pos === pos);
+          teams.forEach((team, tIdx) => {
+            // 蛇形或轮流取
+            let selected = posPlayers.shift() || sortedPlayers.find(p => !p.inTeam);
+            if (selected) {
+              selected.inTeam = true;
+              team.members.push({ ...selected, assignedPos: pos });
+            }
+          });
+        }
+        // 兜底补齐
+        teams.forEach(t => {
+          while(t.members.length < 5) {
+            let p = sortedPlayers.find(x => !x.inTeam);
+            if(p) {
+              p.inTeam = true;
+              t.members.push({ ...p, assignedPos: p.pos });
+            } else break;
           }
         });
       }
 
+      // 回写状态
       store.teams = teams;
+      store.teams.forEach(t => {
+        t.members.forEach(m => {
+          let realP = store.players.find(x => x.id === m.id);
+          if(realP) realP.inTeam = true;
+        });
+      });
+
       renderAll();
       pushToCloud();
+      alert('✅ 智能战队匹配成功！');
     }
 
     function clearTeams() {
@@ -645,9 +702,11 @@
 
     function renderPlayers() {
       const container = document.getElementById('player-list');
+      // 按照 MMR 从高到低排序显示
+      store.players.sort((a,b) => b.mmr - a.mmr);
       const countText = `${store.players.length} 人`;
       document.getElementById('badge-players').innerText = countText;
-      document.getElementById('player-total-count').innerText = `当前总数：${countText}`;
+      document.getElementById('player-total-count').innerText = countText;
       container.innerHTML = '';
 
       if (store.players.length === 0) {
@@ -662,12 +721,12 @@
         }`;
         div.innerHTML = `
           <div class="flex items-center gap-3">
-            <span class="text-xs text-gray-500 font-mono w-5">${index + 1}.</span>
+            <span class="text-xs text-gray-500 font-mono w-5">#${index + 1}</span>
             <div class="w-8 h-8 rounded-full bg-red-950/60 border border-red-800/50 flex items-center justify-center text-red-400 font-bold text-xs">
               ${p.name.charAt(0).toUpperCase()}
             </div>
             <div>
-              <div class="font-bold text-xs text-gray-200">${p.name} <span class="text-red-400 font-normal ml-1">(${p.mmr} 分)</span></div>
+              <div class="font-bold text-xs text-gray-200">${p.name} <span class="text-red-400 font-mono ml-1">(${p.mmr} 分)</span></div>
             </div>
           </div>
 
@@ -699,7 +758,7 @@
       container.innerHTML = '';
 
       if (store.teams.length === 0) {
-        container.innerHTML = `<p class="text-xs text-gray-500 col-span-full text-center py-10">尚未进行匹配，点击右上角“一键智能匹配”</p>`;
+        container.innerHTML = `<p class="text-xs text-gray-500 col-span-full text-center py-10">尚未进行匹配，请点击右上角“一键智能匹配”</p>`;
         return;
       }
 
@@ -734,19 +793,16 @@
     function syncTeamsToBracket4() {
       if (store.teams.length < 4) return alert('需要先在组队页面匹配出至少 4 支队伍！');
       store.bracket4.t = store.teams.slice(0, 4).map(t => t.name);
+      alertedWinners.b4_m1 = false; alertedWinners.b4_m2 = false; alertedWinners.b4_f = false;
       renderBracket4();
       pushToCloud();
     }
 
-    // 验证 BO3 比分逻辑：一旦有一方达到 2 胜，则锁定比分输入
     function validateBO3Scores(scoreA, scoreB) {
       let a = Math.min(2, Math.max(0, parseInt(scoreA) || 0));
       let b = Math.min(2, Math.max(0, parseInt(scoreB) || 0));
-
-      // 若某一方已经到达 2 胜，则不允许再给另一方加分
       if (a === 2 && b > 1) b = 1;
       if (b === 2 && a > 1) a = 1;
-
       return [a, b];
     }
 
@@ -781,7 +837,6 @@
       inputFS1.value = b.f[0];
       inputFS2.value = b.f[1];
 
-      // 一旦有一方达到 2 胜，直接锁定该对局输入框
       inputM1S1.disabled = (b.m1[0] >= 2 || b.m1[1] >= 2);
       inputM1S2.disabled = (b.m1[0] >= 2 || b.m1[1] >= 2);
       inputM2S1.disabled = (b.m2[0] >= 2 || b.m2[1] >= 2);
@@ -804,6 +859,24 @@
       document.getElementById('b4-t3-tag').classList.toggle('hidden', b.m2[0] < 2);
       document.getElementById('b4-t4-tag').classList.toggle('hidden', b.m2[1] < 2);
 
+      // 半决赛1 弹窗提示
+      if (b.m1[0] >= 2 && !alertedWinners.b4_m1) {
+        alertedWinners.b4_m1 = true;
+        alert(`🎉 捷报！【${b.t[0]}】 在 4 强半决赛 Match #1 中获胜并成功晋级！`);
+      } else if (b.m1[1] >= 2 && !alertedWinners.b4_m1) {
+        alertedWinners.b4_m1 = true;
+        alert(`🎉 捷报！【${b.t[1]}】 在 4 强半决赛 Match #1 中获胜并成功晋级！`);
+      }
+
+      // 半决赛2 弹窗提示
+      if (b.m2[0] >= 2 && !alertedWinners.b4_m2) {
+        alertedWinners.b4_m2 = true;
+        alert(`🎉 捷报！【${b.t[2]}】 在 4 强半决赛 Match #2 中获胜并成功晋级！`);
+      } else if (b.m2[1] >= 2 && !alertedWinners.b4_m2) {
+        alertedWinners.b4_m2 = true;
+        alert(`🎉 捷报！【${b.t[3]}】 在 4 强半决赛 Match #2 中获胜并成功晋级！`);
+      }
+
       let f1 = '胜者 1', f2 = '胜者 2';
       if (b.m1[0] >= 2) f1 = b.t[0];
       else if (b.m1[1] >= 2) f1 = b.t[1];
@@ -821,14 +894,26 @@
       document.getElementById('b4-f2-tag').classList.toggle('hidden', b.f[1] < 2);
 
       let winner = '🏆 未决出';
-      if (b.f[0] >= 2) winner = '🏆 ' + f1;
-      else if (b.f[1] >= 2) winner = '🏆 ' + f2;
+      if (b.f[0] >= 2) {
+        winner = '🏆 ' + f1;
+        if (!alertedWinners.b4_f) {
+          alertedWinners.b4_f = true;
+          alert(`👑 绝对高光！【${f1}】 击败对手夺得本次赛事的总冠军！！！`);
+        }
+      } else if (b.f[1] >= 2) {
+        winner = '🏆 ' + f2;
+        if (!alertedWinners.b4_f) {
+          alertedWinners.b4_f = true;
+          alert(`👑 绝对高光！【${f2}】 击败对手夺得本次赛事的总冠军！！！`);
+        }
+      }
       document.getElementById('b4-winner-name').innerText = winner;
     }
 
     function syncTeamsToMatch6() {
       if (store.teams.length < 6) return alert('需要先在组队页面匹配出 6 支队伍！');
       store.match6.t = store.teams.slice(0, 6).map(t => t.name);
+      alertedWinners.m6_s1 = false; alertedWinners.m6_s2 = false; alertedWinners.m6_s3 = false;
       renderMatch6();
       pushToCloud();
     }
@@ -858,7 +943,6 @@
       inputS3_1.value = m.s3[0];
       inputS3_2.value = m.s3[1];
 
-      // 达 2 胜后锁定对应小组输入框
       inputS1_1.disabled = (m.s1[0] >= 2 || m.s1[1] >= 2);
       inputS1_2.disabled = (m.s1[0] >= 2 || m.s1[1] >= 2);
       inputS2_1.disabled = (m.s2[0] >= 2 || m.s2[1] >= 2);
@@ -886,6 +970,30 @@
       document.getElementById('m6-t4-tag').classList.toggle('hidden', m.s2[1] < 2);
       document.getElementById('m6-t5-tag').classList.toggle('hidden', m.s3[0] < 2);
       document.getElementById('m6-t6-tag').classList.toggle('hidden', m.s3[1] < 2);
+
+      if (m.s1[0] >= 2 && !alertedWinners.m6_s1) {
+        alertedWinners.m6_s1 = true;
+        alert(`🎯 战报：6队对决 Group A 中 【${m.t[0]}】 胜出！`);
+      } else if (m.s1[1] >= 2 && !alertedWinners.m6_s1) {
+        alertedWinners.m6_s1 = true;
+        alert(`🎯 战报：6队对决 Group A 中 【${m.t[1]}】 胜出！`);
+      }
+
+      if (m.s2[0] >= 2 && !alertedWinners.m6_s2) {
+        alertedWinners.m6_s2 = true;
+        alert(`🎯 战报：6队对决 Group B 中 【${m.t[2]}】 胜出！`);
+      } else if (m.s2[1] >= 2 && !alertedWinners.m6_s2) {
+        alertedWinners.m6_s2 = true;
+        alert(`🎯 战报：6队对决 Group B 中 【${m.t[3]}】 胜出！`);
+      }
+
+      if (m.s3[0] >= 2 && !alertedWinners.m6_s3) {
+        alertedWinners.m6_s3 = true;
+        alert(`🎯 战报：6队对决 Group C 中 【${m.t[4]}】 胜出！`);
+      } else if (m.s3[1] >= 2 && !alertedWinners.m6_s3) {
+        alertedWinners.m6_s3 = true;
+        alert(`🎯 战报：6队对决 Group C 中 【${m.t[5]}】 胜出！`);
+      }
 
       let w1 = m.s1[0] >= 2 ? m.t[0] : (m.s1[1] >= 2 ? m.t[1] : null);
       let w2 = m.s2[0] >= 2 ? m.t[2] : (m.s2[1] >= 2 ? m.t[3] : null);
