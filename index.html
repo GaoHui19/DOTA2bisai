@@ -7,112 +7,72 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body {
-      background-color: #0d0f12;
-      color: #e2e8f0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    }
-    .dota-card {
-      background: linear-gradient(145deg, #161920 0%, #111318 100%);
-      border: 1px solid #2a2e39;
-    }
-    .dota-gold { color: #f39c12; }
-    .bg-dota-red { background-color: #a31d1d; }
-    .bg-dota-red:hover { background-color: #c02626; }
-    .status-pulse {
-      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
-    }
+    body { background-color: #0d0f12; color: #e2e8f0; font-family: system-ui, -apple-system, sans-serif; }
+    .dota-card { background: linear-gradient(145deg, #161920 0%, #111318 100%); border: 1px solid #2a2e39; }
+    .status-pulse { animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
   </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between">
 
-  <!-- 顶栏 Header -->
-  <header class="bg-gray-900 border-b border-gray-800 px-6 py-4 shadow-lg sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-4">
+  <!-- 顶栏 -->
+  <header class="bg-gray-900 border-b border-gray-800 px-6 py-4 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
       <div class="flex items-center space-x-3">
-        <div class="bg-red-600 text-white font-black px-3 py-1 rounded text-xl flex items-center">
-          <i class="fa-solid font-black mr-2">D2</i> 赛事
-        </div>
-        <div>
-          <h1 class="text-xl font-bold tracking-wide text-white">DOTA2 抖音赛事管理系统</h1>
-          <p class="text-xs text-gray-400">智能选手分队 · 4强淘汰赛 · 6队BO3对抗赛</p>
-        </div>
+        <div class="bg-red-600 text-white font-black px-3 py-1 rounded text-xl">D2 赛事</div>
+        <h1 class="text-xl font-bold text-white">DOTA2 抖音赛事管理系统</h1>
       </div>
-
-      <div class="flex items-center space-x-3">
-        <div class="flex items-center bg-gray-800 px-3 py-1.5 rounded-full border border-gray-700 text-xs">
-          <span id="syncDot" class="w-2.5 h-2.5 rounded-full bg-green-500 mr-2 status-pulse"></span>
-          <span id="syncText" class="text-gray-300">KV 云端自动同步中</span>
-        </div>
+      <div class="flex items-center bg-gray-800 px-3 py-1.5 rounded-full border border-gray-700 text-xs">
+        <span id="syncDot" class="w-2.5 h-2.5 rounded-full bg-green-500 mr-2 status-pulse"></span>
+        <span id="syncText" class="text-gray-300">云端自动同步就绪</span>
       </div>
     </div>
   </header>
 
-  <!-- 主体部分 -->
+  <!-- 主体 -->
   <main class="max-w-7xl mx-auto px-6 py-6 w-full flex-1">
-    <!-- 功能标签导航 -->
-    <div class="flex space-x-2 border-b border-gray-800 pb-3 mb-6">
-      <button onclick="switchTab('players')" id="tabBtn-players" class="px-4 py-2 rounded-md font-medium text-sm bg-red-600 text-white">1. 选手报名库</button>
-      <button onclick="switchTab('teams')" id="tabBtn-teams" class="px-4 py-2 rounded-md font-medium text-sm bg-gray-800 text-gray-400 hover:text-white">2. 智能自动分队</button>
-      <button onclick="switchTab('knockout')" id="tabBtn-knockout" class="px-4 py-2 rounded-md font-medium text-sm bg-gray-800 text-gray-400 hover:text-white">3. 4强淘汰树状赛</button>
-      <button onclick="switchTab('vs6')" id="tabBtn-vs6" class="px-4 py-2 rounded-md font-medium text-sm bg-gray-800 text-gray-400 hover:text-white">4. 6队BO3对抗赛</button>
+    <!-- 导航标签 -->
+    <div class="flex space-x-2 border-b border-gray-800 pb-3 mb-6 overflow-x-auto">
+      <button onclick="switchTab('players')" id="tabBtn-players" class="px-4 py-2 rounded-md text-sm bg-red-600 text-white font-medium whitespace-nowrap">1. 选手报名库</button>
+      <button onclick="switchTab('teams')" id="tabBtn-teams" class="px-4 py-2 rounded-md text-sm bg-gray-800 text-gray-400 font-medium whitespace-nowrap">2. 智能自动分队</button>
+      <button onclick="switchTab('knockout')" id="tabBtn-knockout" class="px-4 py-2 rounded-md text-sm bg-gray-800 text-gray-400 font-medium whitespace-nowrap">3. 4强淘汰赛</button>
+      <button onclick="switchTab('vs6')" id="tabBtn-vs6" class="px-4 py-2 rounded-md text-sm bg-gray-800 text-gray-400 font-medium whitespace-nowrap">4. 6队BO3对抗赛</button>
     </div>
 
     <!-- Tab 1: 选手库 -->
     <div id="tab-players" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div class="dota-card p-5 rounded-lg border border-gray-800">
-        <h2 class="text-lg font-bold text-white mb-4 flex items-center">
-          <i class="fa-solid fa-user-plus text-red-500 mr-2"></i> 新选手报名录入
-        </h2>
+        <h2 class="text-lg font-bold text-white mb-4"><i class="fa-solid fa-user-plus text-red-500 mr-2"></i>新选手录入</h2>
         <div class="space-y-4">
           <div>
-            <label class="block text-xs font-semibold text-gray-400 mb-1">选手信息 (格式: 游戏名（数字ID）) *</label>
-            <input type="text" id="pName" placeholder="例如: 小猴子（123456789）" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500">
+            <label class="block text-xs text-gray-400 mb-1">选手信息 (格式: 游戏名（数字ID）)*</label>
+            <input type="text" id="pName" placeholder="例如: 小猴子（123456789）" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm text-white">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-gray-400 mb-1">天梯积分 (MMR) *</label>
-            <input type="number" id="pMmr" placeholder="例如: 4500" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500">
+            <label class="block text-xs text-gray-400 mb-1">天梯积分 (MMR)*</label>
+            <input type="number" id="pMmr" placeholder="例如: 4500" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm text-white">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-gray-400 mb-1">擅长/偏好分路 (可多选)*</label>
+            <label class="block text-xs text-gray-400 mb-1">擅长分路(可多选)*</label>
             <div class="grid grid-cols-5 gap-1" id="pRoles">
-              <button type="button" onclick="toggleRoleSelect(1)" id="roleBtn-1" class="role-btn border border-gray-700 bg-gray-900 text-gray-400 text-xs py-2 rounded">1号位</button>
-              <button type="button" onclick="toggleRoleSelect(2)" id="roleBtn-2" class="role-btn border border-gray-700 bg-gray-900 text-gray-400 text-xs py-2 rounded">2号位</button>
-              <button type="button" onclick="toggleRoleSelect(3)" id="roleBtn-3" class="role-btn border border-gray-700 bg-gray-900 text-gray-400 text-xs py-2 rounded">3号位</button>
-              <button type="button" onclick="toggleRoleSelect(4)" id="roleBtn-4" class="role-btn border border-gray-700 bg-gray-900 text-gray-400 text-xs py-2 rounded">4号位</button>
-              <button type="button" onclick="toggleRoleSelect(5)" id="roleBtn-5" class="role-btn border border-gray-700 bg-gray-900 text-gray-400 text-xs py-2 rounded">5号位</button>
+              <button type="button" onclick="toggleRole(1)" id="roleBtn-1" class="border border-gray-700 bg-gray-900 text-gray-400 text-xs py-2 rounded">1号位</button>
+              <button type="button" onclick="toggleRole(2)" id="roleBtn-2" class="border border-gray-700 bg-gray-900 text-gray-400 text-xs py-2 rounded">2号位</button>
+              <button type="button" onclick="toggleRole(3)" id="roleBtn-3" class="border border-gray-700 bg-gray-900 text-gray-400 text-xs py-2 rounded">3号位</button>
+              <button type="button" onclick="toggleRole(4)" id="roleBtn-4" class="border border-gray-700 bg-gray-900 text-gray-400 text-xs py-2 rounded">4号位</button>
+              <button type="button" onclick="toggleRole(5)" id="roleBtn-5" class="border border-gray-700 bg-gray-900 text-gray-400 text-xs py-2 rounded">5号位</button>
             </div>
           </div>
-          <button onclick="addPlayer()" class="w-full bg-dota-red text-white py-2.5 rounded font-bold text-sm shadow hover:bg-red-700 transition">
-            <i class="fa-solid fa-plus mr-1"></i> 手工录入该选手
-          </button>
-          <button onclick="clearAllData()" class="w-full bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-red-400 py-2 rounded text-xs border border-gray-700 transition">
-            <i class="fa-solid fa-trash mr-1"></i> 清空所有选手与赛事数据
-          </button>
+          <button onclick="addPlayer()" class="w-full bg-red-600 hover:bg-red-700 text-white py-2.5 rounded font-bold text-sm">手工录入该选手</button>
+          <button onclick="clearAllData()" class="w-full bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-red-400 py-2 rounded text-xs">清空所有赛事数据</button>
         </div>
       </div>
 
       <div class="lg:col-span-2 dota-card p-5 rounded-lg border border-gray-800">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-lg font-bold text-white flex items-center">
-            已报名选手列表 <span id="playerCount" class="text-xs bg-red-900/80 text-red-200 px-2.5 py-0.5 rounded-full ml-2">0 人</span>
-          </h2>
-          <input type="text" id="searchPlayer" oninput="renderPlayers()" placeholder="搜索选手..." class="bg-gray-900 border border-gray-700 rounded px-3 py-1 text-xs text-white">
-        </div>
-        <div class="overflow-x-auto max-h-[500px]">
+        <h2 class="text-lg font-bold text-white mb-4">已报名选手列表 (<span id="playerCount">0</span> 人)</h2>
+        <div class="overflow-x-auto max-h-[400px]">
           <table class="w-full text-left text-sm text-gray-300">
-            <thead class="bg-gray-900 text-xs uppercase text-gray-400 border-b border-gray-800 sticky top-0">
-              <tr>
-                <th class="p-3">#</th>
-                <th class="p-3">选手/游戏ID</th>
-                <th class="p-3">天梯积分 (MMR)</th>
-                <th class="p-3">擅长分路</th>
-                <th class="p-3 text-right">操作</th>
-              </tr>
+            <thead class="bg-gray-900 text-xs uppercase text-gray-400 sticky top-0">
+              <tr><th class="p-3">#</th><th class="p-3">选手/游戏ID</th><th class="p-3">MMR</th><th class="p-3">分路</th><th class="p-3 text-right">操作</th></tr>
             </thead>
             <tbody id="playerTableBody" class="divide-y divide-gray-800"></tbody>
           </table>
@@ -122,362 +82,268 @@
 
     <!-- Tab 2: 智能分队 -->
     <div id="tab-teams" class="hidden space-y-6">
-      <div class="dota-card p-5 rounded-lg border border-gray-800 flex justify-between items-center">
-        <div>
-          <h2 class="text-lg font-bold text-white">智能综合平衡分队</h2>
-          <p class="text-xs text-gray-400">系统将依据选手的 1-5号位擅长偏好 以及 MMR天梯分 进行加权计算，自动组建均衡战队。</p>
-        </div>
-        <div class="flex space-x-3">
-          <button onclick="generateTeams(4)" class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded text-sm font-bold shadow">生成 4 支战队 (20人)</button>
-          <button onclick="generateTeams(6)" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded text-sm font-bold shadow">生成 6 支战队 (30人)</button>
+      <div class="dota-card p-5 rounded-lg border border-gray-800 flex flex-wrap justify-between items-center gap-4">
+        <h2 class="text-lg font-bold text-white">智能平衡分队</h2>
+        <div class="space-x-2">
+          <button onclick="generateTeams(4)" class="bg-red-600 text-white px-4 py-2 rounded text-sm font-bold">生成 4 支战队 (20人)</button>
+          <button onclick="generateTeams(6)" class="bg-amber-600 text-white px-4 py-2 rounded text-sm font-bold">生成 6 支战队 (30人)</button>
         </div>
       </div>
-      <div id="teamsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+      <div id="teamsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
     </div>
 
     <!-- Tab 3: 4强淘汰赛 -->
     <div id="tab-knockout" class="hidden space-y-6">
       <div class="dota-card p-5 rounded-lg border border-gray-800 flex justify-between items-center">
-        <div>
-          <h2 class="text-lg font-bold text-white">4强树状单败淘汰赛</h2>
-          <p class="text-xs text-gray-400">半决赛 ➔ 总决赛 ➔ 决出冠军，点击比分或晋级按钮实时推送结果。</p>
-        </div>
-        <button onclick="init4Knockout()" class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded text-xs font-bold">导入前4强队伍开始比赛</button>
+        <h2 class="text-lg font-bold text-white">4强树状单败淘汰赛</h2>
+        <button onclick="init4Knockout()" class="bg-red-600 text-white px-4 py-2 rounded text-sm font-bold">导入前4强队伍开始比赛</button>
       </div>
-      <div id="knockoutBracket" class="dota-card p-6 rounded-lg border border-gray-800 min-h-[400px]"></div>
+      <div id="knockoutBracket" class="dota-card p-6 rounded-lg border border-gray-800 min-h-[300px]"></div>
     </div>
 
     <!-- Tab 4: 6队对抗赛 -->
     <div id="tab-vs6" class="hidden space-y-6">
       <div class="dota-card p-5 rounded-lg border border-gray-800 flex justify-between items-center">
-        <div>
-          <h2 class="text-lg font-bold text-white">6队 / 3组 BO3 对抗赛</h2>
-          <p class="text-xs text-gray-400">6支战队分为3组进行两两 BO3 对抗，实时记录比分并汇总胜方。</p>
-        </div>
-        <button onclick="init6Vs()" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded text-xs font-bold">导入6支战队生成对局</button>
+        <h2 class="text-lg font-bold text-white">6队 / 3组 BO3 对抗赛</h2>
+        <button onclick="init6Vs()" class="bg-amber-600 text-white px-4 py-2 rounded text-sm font-bold">导入6支战队生成对局</button>
       </div>
-      <div id="vs6Grid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+      <div id="vs6Grid" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
     </div>
   </main>
 
   <script>
-    const WORKER_URL = 'https://dota2-api.niubi1597gepizycom.workers.dev';
+    const STORAGE_API = 'https://api.npoint.io/dota2_douyin_tournament_2026_db';
 
-    let state = {
-      players: [],
-      selectedRoles: [],
-      teams: [],
-      knockout: { semi1: [], semi2: [], final: [], champion: null },
-      vs6: []
-    };
+    let state = { players: [], selectedRoles: [], teams: [], knockout: { semi1: null, semi2: null, final: null }, vs6: [] };
 
     window.onload = function() {
-      loadFromCloud();
-      setInterval(loadFromCloud, 5000);
+      loadCloud();
+      setInterval(loadCloud, 4000);
     };
 
-    async function loadFromCloud() {
+    async function loadCloud() {
       try {
-        const res = await fetch(WORKER_URL);
-        if (res.ok) {
-          const cloudData = await res.json();
-          if (cloudData && typeof cloudData === 'object' && cloudData.players) {
-            if (JSON.stringify(cloudData) !== JSON.stringify(state)) {
-              state = cloudData;
-              renderAll();
-            }
-            updateSyncBadge('bg-green-500', 'KV 云端自动同步中');
+        const res = await fetch(STORAGE_API);
+        if(res.ok) {
+          const data = await res.json();
+          if(data && data.players && JSON.stringify(data) !== JSON.stringify(state)) {
+            state = data;
+            renderAll();
           }
+          setStatus('bg-green-500', '云端实时同步中');
         }
-      } catch (e) {
-        updateSyncBadge('bg-red-500', '云端网络异常');
+      } catch(e) {
+        setStatus('bg-red-500', '同步网络异常');
       }
     }
 
-    async function autoSaveToCloud() {
-      updateSyncBadge('bg-yellow-500', '同步数据中...');
+    async function saveCloud() {
+      setStatus('bg-yellow-500', '正在同步至云端...');
       try {
-        const res = await fetch(WORKER_URL, {
-          method: 'PUT',
+        await fetch(STORAGE_API, {
+          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(state)
         });
-        if (res.ok) {
-          updateSyncBadge('bg-green-500', 'KV 云端自动同步中');
-        } else {
-          updateSyncBadge('bg-red-500', '保存失败');
-        }
-      } catch (e) {
-        updateSyncBadge('bg-red-500', '网络失败');
+        setStatus('bg-green-500', '云端实时同步中');
+      } catch(e) {
+        setStatus('bg-red-500', '云端保存失败');
       }
     }
 
-    function updateSyncBadge(colorClass, text) {
-      document.getElementById('syncDot').className = `w-2.5 h-2.5 rounded-full mr-2 status-pulse ${colorClass}`;
+    function setStatus(dotClass, text) {
+      document.getElementById('syncDot').className = `w-2.5 h-2.5 rounded-full mr-2 status-pulse ${dotClass}`;
       document.getElementById('syncText').innerText = text;
     }
 
-    function toggleRoleSelect(roleNum) {
-      const index = state.selectedRoles.indexOf(roleNum);
-      if (index > -1) {
-        state.selectedRoles.splice(index, 1);
-        document.getElementById(`roleBtn-${roleNum}`).className = 'role-btn border border-gray-700 bg-gray-900 text-gray-400 text-xs py-2 rounded';
+    function toggleRole(r) {
+      const idx = state.selectedRoles.indexOf(r);
+      const btn = document.getElementById(`roleBtn-${r}`);
+      if(idx > -1) {
+        state.selectedRoles.splice(idx, 1);
+        btn.className = 'border border-gray-700 bg-gray-900 text-gray-400 text-xs py-2 rounded';
       } else {
-        state.selectedRoles.push(roleNum);
-        document.getElementById(`roleBtn-${roleNum}`).className = 'role-btn border border-gray-700 bg-red-600 text-white text-xs py-2 rounded';
+        state.selectedRoles.push(r);
+        btn.className = 'border border-gray-700 bg-red-600 text-white text-xs py-2 rounded';
       }
     }
 
     function addPlayer() {
       const name = document.getElementById('pName').value.trim();
       const mmr = parseInt(document.getElementById('pMmr').value);
-      if (!name || isNaN(mmr) || state.selectedRoles.length === 0) {
-        return alert('请完整填写选手信息（如：小猴子（123456789））、MMR积分并至少选择一个擅长分路！');
+      if(!name || isNaN(mmr) || state.selectedRoles.length === 0) {
+        return alert('请完整填写：游戏名（数字ID）、MMR、及至少一个擅长分路！');
       }
-      state.players.unshift({
-        id: Date.now(),
-        name: name,
-        mmr: mmr,
-        roles: [...state.selectedRoles]
-      });
+      state.players.unshift({ id: Date.now(), name, mmr, roles: [...state.selectedRoles] });
       document.getElementById('pName').value = '';
       document.getElementById('pMmr').value = '';
       state.selectedRoles = [];
-      for(let i=1;i<=5;i++){
-        document.getElementById(`roleBtn-${i}`).className = 'role-btn border border-gray-700 bg-gray-900 text-gray-400 text-xs py-2 rounded';
+      for(let i=1; i<=5; i++) {
+        document.getElementById(`roleBtn-${i}`).className = 'border border-gray-700 bg-gray-900 text-gray-400 text-xs py-2 rounded';
       }
-      renderPlayers();
-      autoSaveToCloud();
+      renderAll();
+      saveCloud();
     }
 
     function deletePlayer(id) {
       state.players = state.players.filter(p => p.id !== id);
-      renderPlayers();
-      autoSaveToCloud();
+      renderAll();
+      saveCloud();
     }
 
     function clearAllData() {
-      if (confirm('确认要清空所有已录入的选手与赛事战队数据吗？')) {
-        state = { players: [], selectedRoles: [], teams: [], knockout: { semi1: [], semi2: [], final: [], champion: null }, vs6: [] };
+      if(confirm('确定要清空所有数据吗？')) {
+        state = { players: [], selectedRoles: [], teams: [], knockout: { semi1: null, semi2: null, final: null }, vs6: [] };
         renderAll();
-        autoSaveToCloud();
+        saveCloud();
       }
     }
 
-    function renderPlayers() {
-      const keyword = document.getElementById('searchPlayer').value.toLowerCase();
-      const tbody = document.getElementById('playerTableBody');
-      const filtered = state.players.filter(p => p.name.toLowerCase().includes(keyword));
-      document.getElementById('playerCount').innerText = `${state.players.length} 人`;
-
-      tbody.innerHTML = filtered.map((p, idx) => `
-        <tr class="hover:bg-gray-800/50">
-          <td class="p-3 text-gray-500">${idx + 1}</td>
-          <td class="p-3 font-semibold text-white">${p.name}</td>
-          <td class="p-3 font-mono text-amber-400">${p.mmr}</td>
-          <td class="p-3">
-            ${p.roles.map(r => `<span class="px-1.5 py-0.5 bg-gray-800 text-amber-500 rounded border border-amber-500/20 text-xs mr-1">${r}号位</span>`).join('')}
-          </td>
-          <td class="p-3 text-right">
-            <button onclick="deletePlayer(${p.id})" class="text-red-400 hover:text-red-300 text-xs"><i class="fa-solid fa-trash"></i></button>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    function switchTab(tab) {
-      ['players', 'teams', 'knockout', 'vs6'].forEach(t => {
-        document.getElementById(`tab-${t}`).classList.add('hidden');
-        document.getElementById(`tabBtn-${t}`).className = 'px-4 py-2 rounded-md font-medium text-sm bg-gray-800 text-gray-400 hover:text-white';
-      });
-      document.getElementById(`tab-${tab}`).classList.remove('hidden');
-      document.getElementById(`tabBtn-${tab}`).className = 'px-4 py-2 rounded-md font-medium text-sm bg-red-600 text-white';
-    }
-
-    function generateTeams(teamCount) {
-      if (state.players.length < teamCount * 5) {
-        return alert(`选手人数不足！组成 ${teamCount} 支战队至少需要 ${teamCount * 5} 名选手（当前 ${state.players.length} 人）。`);
-      }
+    function generateTeams(count) {
+      if(state.players.length < count * 5) return alert(`报名人数不足${count * 5}人，无法生成${count}支战队！`);
       let pool = [...state.players].sort((a,b) => b.mmr - a.mmr);
-      let teams = Array.from({length: teamCount}, (_, i) => ({
-        id: i + 1,
-        name: `战队 ${String.fromCharCode(65 + i)}`,
-        members: [],
-        avgMmr: 0
-      }));
-
-      for (let i = 0; i < teamCount * 5; i++) {
-        teams[i % teamCount].members.push(pool[i]);
-      }
-
-      teams.forEach(t => {
-        const sum = t.members.reduce((acc, m) => acc + m.mmr, 0);
-        t.avgMmr = Math.round(sum / t.members.length);
-      });
-
+      let teams = Array.from({length: count}, (_, i) => ({ name: `战队 ${String.fromCharCode(65+i)}`, members: [] }));
+      for(let i=0; i<count * 5; i++) { teams[i % count].members.push(pool[i]); }
       state.teams = teams;
-      renderTeams();
-      autoSaveToCloud();
-    }
-
-    function renderTeams() {
-      const container = document.getElementById('teamsGrid');
-      if (state.teams.length === 0) {
-        container.innerHTML = `<p class="text-gray-500 text-sm col-span-3 text-center py-8">暂未生成战队，请在上方选择分组队伍数量。</p>`;
-        return;
-      }
-      container.innerHTML = state.teams.map(t => `
-        <div class="dota-card p-4 rounded-lg border border-gray-800">
-          <div class="flex justify-between items-center mb-3 pb-2 border-b border-gray-800">
-            <span class="font-bold text-white text-base">${t.name}</span>
-            <span class="text-xs font-mono bg-amber-500/10 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded">均分: ${t.avgMmr}</span>
-          </div>
-          <div class="space-y-2">
-            ${t.members.map(m => `
-              <div class="flex justify-between items-center text-xs bg-gray-900/60 p-2 rounded">
-                <span class="text-gray-300 font-medium">${m.name}</span>
-                <span class="text-gray-500 font-mono">${m.mmr} MMR</span>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      `).join('');
+      renderAll();
+      saveCloud();
     }
 
     function init4Knockout() {
-      if (state.teams.length < 4) return alert('战队数量不足4支，请先生成至少4支战队！');
+      if(state.teams.length < 4) return alert('请先在第2步生成至少4支战队！');
       state.knockout = {
         semi1: { teamA: state.teams[0], teamB: state.teams[3], scoreA: 0, scoreB: 0, winner: null },
         semi2: { teamA: state.teams[1], teamB: state.teams[2], scoreA: 0, scoreB: 0, winner: null },
-        final: { teamA: null, teamB: null, scoreA: 0, scoreB: 0, winner: null },
-        champion: null
+        final: { teamA: null, teamB: null, scoreA: 0, scoreB: 0, winner: null }
       };
-      renderKnockout();
-      autoSaveToCloud();
+      renderAll();
+      saveCloud();
     }
 
-    function updateMatchScore(matchKey, teamSide, score) {
+    function updateMatchScore(matchKey, side, score) {
       let m = state.knockout[matchKey];
-      if (!m || !m.teamA || !m.teamB) return;
-      if (teamSide === 'A') m.scoreA = parseInt(score) || 0;
-      if (teamSide === 'B') m.scoreB = parseInt(score) || 0;
-      
-      // BO3 判定 2胜
-      if (m.scoreA >= 2) { m.winner = m.teamA; }
-      else if (m.scoreB >= 2) { m.winner = m.teamB; }
-      else { m.winner = null; }
+      if(!m || !m.teamA || !m.teamB) return;
+      if(side === 'A') m.scoreA = parseInt(score) || 0;
+      if(side === 'B') m.scoreB = parseInt(score) || 0;
+      if(m.scoreA >= 2) m.winner = m.teamA;
+      else if(m.scoreB >= 2) m.winner = m.teamB;
+      else m.winner = null;
 
       // 联动决赛
-      if (matchKey === 'semi1' || matchKey === 'semi2') {
-        state.knockout.final.teamA = state.knockout.semi1.winner;
-        state.knockout.final.teamB = state.knockout.semi2.winner;
-        if (!state.knockout.final.teamA || !state.knockout.final.teamB) {
-          state.knockout.final.winner = null;
-        }
-      }
-      renderKnockout();
-      autoSaveToCloud();
-    }
+      state.knockout.final.teamA = state.knockout.semi1.winner;
+      state.knockout.final.teamB = state.knockout.semi2.winner;
+      if(!state.knockout.final.teamA || !state.knockout.final.teamB) state.knockout.final.winner = null;
 
-    function renderKnockout() {
-      const k = state.knockout;
-      const container = document.getElementById('knockoutBracket');
-      if (!k.semi1 || !k.semi1.teamA) {
-        container.innerHTML = `<p class="text-gray-500 text-center py-12">点击上方“导入前4强队伍开始比赛”来初始化对阵图。</p>`;
-        return;
-      }
-
-      const matchBox = (title, key, m) => `
-        <div class="bg-gray-900 border border-gray-700 rounded-lg p-3 w-72">
-          <div class="text-xs font-bold text-amber-400 mb-2">${title}</div>
-          <div class="space-y-2 text-xs">
-            <div class="flex justify-between items-center bg-gray-800 p-2 rounded ${m.winner && m.winner.name === (m.teamA && m.teamA.name) ? 'border border-green-500' : ''}">
-              <span class="text-white truncate max-w-[120px]">${m.teamA ? m.teamA.name : '待定'}</span>
-              <input type="number" min="0" max="2" value="${m.scoreA}" onchange="updateMatchScore('${key}', 'A', this.value)" class="w-10 bg-gray-950 border border-gray-700 text-center rounded text-white font-mono">
-            </div>
-            <div class="flex justify-between items-center bg-gray-800 p-2 rounded ${m.winner && m.winner.name === (m.teamB && m.teamB.name) ? 'border border-green-500' : ''}">
-              <span class="text-white truncate max-w-[120px]">${m.teamB ? m.teamB.name : '待定'}</span>
-              <input type="number" min="0" max="2" value="${m.scoreB}" onchange="updateMatchScore('${key}', 'B', this.value)" class="w-10 bg-gray-950 border border-gray-700 text-center rounded text-white font-mono">
-            </div>
-          </div>
-        </div>
-      `;
-
-      container.innerHTML = `
-        <div class="flex flex-col md:flex-row justify-around items-center gap-8 py-4">
-          <div class="space-y-6">
-            ${matchBox('半决赛 1 (Match 1)', 'semi1', k.semi1)}
-            ${matchBox('半决赛 2 (Match 2)', 'semi2', k.semi2)}
-          </div>
-          <div class="flex flex-col items-center">
-            ${matchBox('总决赛 (Grand Final)', 'final', k.final)}
-          </div>
-          <div class="flex flex-col items-center">
-            <div class="bg-gradient-to-b from-amber-600/30 to-gray-900 border border-amber-500 rounded-lg p-5 text-center w-64 shadow-xl">
-              <i class="fa-solid fa-trophy text-amber-400 text-3xl mb-2"></i>
-              <div class="text-xs font-bold text-gray-400 uppercase tracking-widest">赛事总冠军</div>
-              <div class="text-lg font-black text-amber-300 mt-1">${k.final.winner ? k.final.winner.name : '虚位以待'}</div>
-            </div>
-          </div>
-        </div>
-      `;
+      renderAll();
+      saveCloud();
     }
 
     function init6Vs() {
-      if (state.teams.length < 6) return alert('战队数量不足6支，请先生成至少6支战队！');
+      if(state.teams.length < 6) return alert('请先在第2步生成至少6支战队！');
       state.vs6 = [
         { id: 1, name: '对抗组 1', teamA: state.teams[0], teamB: state.teams[1], scoreA: 0, scoreB: 0, winner: null },
         { id: 2, name: '对抗组 2', teamA: state.teams[2], teamB: state.teams[3], scoreA: 0, scoreB: 0, winner: null },
         { id: 3, name: '对抗组 3', teamA: state.teams[4], teamB: state.teams[5], scoreA: 0, scoreB: 0, winner: null }
       ];
-      renderVs6();
-      autoSaveToCloud();
+      renderAll();
+      saveCloud();
     }
 
     function updateVs6Score(id, side, score) {
-      let match = state.vs6.find(v => v.id === id);
-      if (!match) return;
-      if (side === 'A') match.scoreA = parseInt(score) || 0;
-      if (side === 'B') match.scoreB = parseInt(score) || 0;
-      if (match.scoreA >= 2) match.winner = match.teamA;
-      else if (match.scoreB >= 2) match.winner = match.teamB;
-      else match.winner = null;
-
-      renderVs6();
-      autoSaveToCloud();
+      let m = state.vs6.find(v => v.id === id);
+      if(!m) return;
+      if(side === 'A') m.scoreA = parseInt(score) || 0;
+      if(side === 'B') m.scoreB = parseInt(score) || 0;
+      if(m.scoreA >= 2) m.winner = m.teamA;
+      else if(m.scoreB >= 2) m.winner = m.teamB;
+      else m.winner = null;
+      renderAll();
+      saveCloud();
     }
 
-    function renderVs6() {
-      const container = document.getElementById('vs6Grid');
-      if (!state.vs6 || state.vs6.length === 0) {
-        container.innerHTML = `<p class="text-gray-500 text-sm col-span-3 text-center py-8">暂未生成对抗赛，请点击上方按钮导入6支战队。</p>`;
-        return;
-      }
-      container.innerHTML = state.vs6.map(v => `
-        <div class="dota-card p-4 rounded-lg border border-gray-800">
-          <div class="flex justify-between items-center mb-3 pb-2 border-b border-gray-800">
-            <span class="font-bold text-amber-400 text-sm">${v.name} (BO3)</span>
-            <span class="text-xs bg-gray-800 text-gray-300 px-2 py-0.5 rounded">胜者: ${v.winner ? v.winner.name : '进行中'}</span>
-          </div>
-          <div class="space-y-3 text-xs">
-            <div class="flex justify-between items-center bg-gray-900 p-2.5 rounded ${v.winner && v.winner.name === v.teamA.name ? 'border border-green-500' : ''}">
-              <span class="text-white font-medium truncate max-w-[140px]">${v.teamA.name}</span>
-              <input type="number" min="0" max="2" value="${v.scoreA}" onchange="updateVs6Score(${v.id}, 'A', this.value)" class="w-10 bg-gray-950 border border-gray-700 text-center rounded text-white font-mono py-1">
-            </div>
-            <div class="flex justify-between items-center bg-gray-900 p-2.5 rounded ${v.winner && v.winner.name === v.teamB.name ? 'border border-green-500' : ''}">
-              <span class="text-white font-medium truncate max-w-[140px]">${v.teamB.name}</span>
-              <input type="number" min="0" max="2" value="${v.scoreB}" onchange="updateVs6Score(${v.id}, 'B', this.value)" class="w-10 bg-gray-950 border border-gray-700 text-center rounded text-white font-mono py-1">
-            </div>
-          </div>
-        </div>
-      `).join('');
+    function switchTab(tab) {
+      ['players', 'teams', 'knockout', 'vs6'].forEach(t => {
+        document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tab);
+        document.getElementById(`tabBtn-${t}`).className = `px-4 py-2 rounded-md text-sm font-medium ${t === tab ? 'bg-red-600 text-white' : 'bg-gray-800 text-gray-400'}`;
+      });
     }
 
     function renderAll() {
-      renderPlayers();
-      renderTeams();
-      renderKnockout();
-      renderVs6();
+      document.getElementById('playerCount').innerText = state.players.length;
+      document.getElementById('playerTableBody').innerHTML = state.players.map((p, idx) => `
+        <tr class="hover:bg-gray-800/50">
+          <td class="p-3 text-gray-500">${idx+1}</td>
+          <td class="p-3 font-semibold text-white">${p.name}</td>
+          <td class="p-3 text-amber-400 font-mono">${p.mmr}</td>
+          <td class="p-3">${p.roles.map(r=>`<span class="bg-gray-800 text-amber-500 px-1.5 py-0.5 rounded text-xs mr-1">${r}号位</span>`).join('')}</td>
+          <td class="p-3 text-right"><button onclick="deletePlayer(${p.id})" class="text-red-400 hover:text-red-300"><i class="fa-solid fa-trash"></i></button></td>
+        </tr>
+      `).join('');
+
+      const tGrid = document.getElementById('teamsGrid');
+      tGrid.innerHTML = state.teams.map(t => `
+        <div class="dota-card p-4 rounded-lg">
+          <h3 class="font-bold text-white mb-2 pb-1 border-b border-gray-800">${t.name}</h3>
+          <div class="space-y-1">${t.members.map(m=>`<div class="flex justify-between text-xs bg-gray-900/60 p-1.5 rounded"><span class="text-gray-300">${m.name}</span><span class="text-amber-400 font-mono">${m.mmr}</span></div>`).join('')}</div>
+        </div>
+      `).join('');
+
+      // 渲染4强淘汰赛
+      const k = state.knockout;
+      const kBox = document.getElementById('knockoutBracket');
+      if(!k.semi1) {
+        kBox.innerHTML = `<p class="text-gray-500 text-center py-8">暂未初始化对阵，请点击上方按钮导入战队。</p>`;
+      } else {
+        const renderMatchBox = (title, key, m) => `
+          <div class="bg-gray-900 border border-gray-700 rounded-lg p-3 w-64">
+            <div class="text-xs font-bold text-amber-400 mb-2">${title}</div>
+            <div class="space-y-2 text-xs">
+              <div class="flex justify-between items-center bg-gray-800 p-2 rounded ${m.winner && m.winner.name === (m.teamA?.name) ? 'border border-green-500' : ''}">
+                <span class="text-white truncate">${m.teamA ? m.teamA.name : '待定'}</span>
+                <input type="number" min="0" max="2" value="${m.scoreA}" onchange="updateMatchScore('${key}', 'A', this.value)" class="w-10 bg-gray-950 border border-gray-700 text-center rounded text-white font-mono">
+              </div>
+              <div class="flex justify-between items-center bg-gray-800 p-2 rounded ${m.winner && m.winner.name === (m.teamB?.name) ? 'border border-green-500' : ''}">
+                <span class="text-white truncate">${m.teamB ? m.teamB.name : '待定'}</span>
+                <input type="number" min="0" max="2" value="${m.scoreB}" onchange="updateMatchScore('${key}', 'B', this.value)" class="w-10 bg-gray-950 border border-gray-700 text-center rounded text-white font-mono">
+              </div>
+            </div>
+          </div>
+        `;
+        kBox.innerHTML = `
+          <div class="flex flex-col md:flex-row justify-around items-center gap-6 py-2">
+            <div class="space-y-4">
+              ${renderMatchBox('半决赛 1', 'semi1', k.semi1)}
+              ${renderMatchBox('半决赛 2', 'semi2', k.semi2)}
+            </div>
+            <div>${renderMatchBox('总决赛', 'final', k.final || {teamA:null, teamB:null, scoreA:0, scoreB:0, winner:null})}</div>
+          </div>
+        `;
+      }
+
+      // 渲染6队BO3
+      const vGrid = document.getElementById('vs6Grid');
+      if(!state.vs6 || state.vs6.length === 0) {
+        vGrid.innerHTML = `<p class="text-gray-500 text-sm col-span-3 text-center py-8">暂未生成6队对抗赛。</p>`;
+      } else {
+        vGrid.innerHTML = state.vs6.map(v => `
+          <div class="dota-card p-4 rounded-lg border border-gray-800 text-xs">
+            <div class="font-bold text-amber-400 mb-2 pb-1 border-b border-gray-800 flex justify-between">
+              <span>${v.name} (BO3)</span>
+              <span class="text-gray-400">胜者: ${v.winner ? v.winner.name : '进行中'}</span>
+            </div>
+            <div class="space-y-2">
+              <div class="flex justify-between items-center bg-gray-900 p-2 rounded ${v.winner && v.winner.name === v.teamA.name ? 'border border-green-500' : ''}">
+                <span class="text-white truncate">${v.teamA.name}</span>
+                <input type="number" min="0" max="2" value="${v.scoreA}" onchange="updateVs6Score(${v.id}, 'A', this.value)" class="w-10 bg-gray-950 border border-gray-700 text-center rounded text-white font-mono">
+              </div>
+              <div class="flex justify-between items-center bg-gray-900 p-2 rounded ${v.winner && v.winner.name === v.teamB.name ? 'border border-green-500' : ''}">
+                <span class="text-white truncate">${v.teamB.name}</span>
+                <input type="number" min="0" max="2" value="${v.scoreB}" onchange="updateVs6Score(${v.id}, 'B', this.value)" class="w-10 bg-gray-950 border border-gray-700 text-center rounded text-white font-mono">
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
     }
   </script>
 </body>
