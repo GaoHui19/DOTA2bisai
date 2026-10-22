@@ -86,10 +86,10 @@
       <div>
         <h1 class="text-2xl font-black text-red-500 flex items-center gap-3">
           <i class="fa-solid fa-trophy"></i> 
-          <i class="fa-solid fa-swords"></i>
+          <i class="fa-solid fa-swords text-red-500"></i>
           DOTA 2 赛事管理系统
         </h1>
-        <p class="text-xs text-gray-400 mt-1">云端秒级同步 | 仅弹窗提示总冠军 | 严格/综合双模防断层组队</p>
+        <p class="text-xs text-gray-400 mt-1">云端秒级同步 | 仅弹窗提示总冠军 | 严格相近分段聚集组队</p>
       </div>
 
       <!-- 云端状态 -->
@@ -189,13 +189,13 @@
           <h2 class="text-lg font-bold text-amber-400 flex items-center gap-2">
             <i class="fa-solid fa-wand-magic-sparkles"></i> 智能战队分流匹配
           </h2>
-          <p class="text-xs text-gray-400">严格分数线段（同分段内防断层） / 综合天梯平分（全分段随机平衡）</p>
+          <p class="text-xs text-gray-400">严格模式（高分与高分聚在同队，防止大分差） / 综合模式（全局平分）</p>
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
           <select id="team-mode" class="bg-gray-950 border border-gray-800 text-xs rounded px-3 py-2 text-amber-300 font-semibold outline-none">
-            <option value="tier">模式B：严格分数线段组队 (防内部实力差距过大)</option>
-            <option value="balance">模式A：综合天梯平分组队 (全分段随机平衡)</option>
+            <option value="tier">模式B：严格分数线段组队 (高分归高分队，防止差距过大)</option>
+            <option value="balance">模式A：综合天梯平分组队 (全分段平均拖平)</option>
           </select>
 
           <select id="match-team-count" class="bg-gray-950 border border-gray-800 text-xs rounded px-3 py-2 text-white outline-none">
@@ -494,7 +494,7 @@
 
     let syncTimer = null;
     let isLocalUpdating = false;
-    let championAlerted = false; // 只在总冠军决出时弹一次
+    let championAlerted = false;
 
     window.onload = () => {
       renderAll();
@@ -510,13 +510,8 @@
       document.getElementById('btn-' + tabId).classList.add('active');
     }
 
-    // 静默复制 ID，不弹窗提示
     function copyToClipboard(text) {
-      navigator.clipboard.writeText(text).then(() => {
-        // 静默复制成功，不干扰用户
-      }).catch(() => {
-        // 降级静默
-      });
+      navigator.clipboard.writeText(text).then(() => {}).catch(() => {});
     }
 
     function startAutoSync() {
@@ -630,7 +625,7 @@
       }
     }
 
-    // 智能匹配分流核心算法
+    // 智能组队算法升级：完美解决严格模式下高分与低分混在一起的问题
     function generateMatchmaking() {
       const count = parseInt(document.getElementById('match-team-count').value);
       const mode = document.getElementById('team-mode').value;
@@ -648,36 +643,25 @@
         members: []
       }));
 
+      // 所有选手严格按 MMR 从高到低排序
+      let sortedPool = [...store.players].sort((a, b) => b.mmr - a.mmr);
+
       if (mode === 'tier') {
-        // 模式B：严格分数线段组队（按实力段位阶梯交叉分摊，严格保证每个队伍内部五人实力/分数差距不能过大，防断层）
-        for (let pos = 1; pos <= 5; pos++) {
-          let posPlayers = store.players.filter(p => p.pos === pos).sort((a,b) => b.mmr - a.mmr);
-          for (let i = 0; i < posPlayers.length; i += count) {
-            let chunk = posPlayers.slice(i, i + count).sort(() => 0.5 - Math.random());
-            chunk.forEach((p, tIdx) => {
-              if (teams[tIdx] && teams[tIdx].members.length < 5) {
-                p.inTeam = true;
-                teams[tIdx].members.push({ ...p, assignedPos: pos });
-              }
-            });
-          }
-        }
-        // 补充可能剩余的
-        let unassigned = store.players.filter(p => !p.inTeam).sort((a,b) => b.mmr - a.mmr);
-        teams.forEach(t => {
-          while (t.members.length < 5 && unassigned.length > 0) {
-            let p = unassigned.shift();
+        // 【模式B：严格分数线段】直接分块（前5个高分最接近的选手归队1，接下来的5个归队2...）
+        teams.forEach((t, tIdx) => {
+          let chunk = sortedPool.slice(tIdx * 5, (tIdx + 1) * 5);
+          // 在这 5 个相近分数的选手内部按报名位置安排号位
+          chunk.forEach((p, pIdx) => {
             p.inTeam = true;
-            t.members.push({ ...p, assignedPos: p.pos });
-          }
+            t.members.push({ ...p, assignedPos: p.pos || (pIdx + 1) });
+          });
         });
       } else {
-        // 模式A：综合天梯平分模式（蛇形排布随机平衡，各队总分相近）
-        let sortedPlayers = [...store.players].sort((a,b) => b.mmr - a.mmr);
+        // 【模式A：综合天梯平分】蛇形排布拖平各队平均分
         for (let pos = 1; pos <= 5; pos++) {
-          let posPlayers = sortedPlayers.filter(p => p.pos === pos);
+          let posPlayers = sortedPool.filter(p => p.pos === pos);
           teams.forEach((team) => {
-            let selected = posPlayers.shift() || sortedPlayers.find(p => !p.inTeam);
+            let selected = posPlayers.shift() || sortedPool.find(p => !p.inTeam);
             if (selected) {
               selected.inTeam = true;
               team.members.push({ ...selected, assignedPos: pos });
@@ -686,7 +670,7 @@
         }
         teams.forEach(t => {
           while(t.members.length < 5) {
-            let p = sortedPlayers.find(x => !x.inTeam);
+            let p = sortedPool.find(x => !x.inTeam);
             if(p) {
               p.inTeam = true;
               t.members.push({ ...p, assignedPos: p.pos });
@@ -726,7 +710,7 @@
 
     function renderPlayers() {
       const container = document.getElementById('player-list');
-      store.players.sort((a,b) => b.mmr - a.mmr); // 严格从高到低排序
+      store.players.sort((a,b) => b.mmr - a.mmr);
       const countText = `${store.players.length} 人`;
       document.getElementById('badge-players').innerText = countText;
       document.getElementById('player-total-count').innerText = countText;
@@ -915,7 +899,6 @@
       document.getElementById('b4-winner-name').innerText = winner;
     }
 
-    // 🏆 显示冠军居中弹窗
     function showChampionModal(teamName) {
       document.getElementById('modal-champion-name').innerText = teamName;
       document.getElementById('champion-modal').classList.remove('hidden');
