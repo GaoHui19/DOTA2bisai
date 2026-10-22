@@ -64,41 +64,70 @@
         .glow-gold {
             box-shadow: 0 0 15px rgba(214, 158, 46, 0.3);
         }
+
+        @keyframes pulse-fast {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        .animate-pulse-fast {
+            animation: pulse-fast 0.8s infinite;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans antialiased">
 
     <!-- Header Navigation -->
     <header class="border-b border-dota-border bg-dota-card/90 backdrop-blur sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-red-600 to-amber-600 flex items-center justify-center shadow-lg shadow-red-900/40">
-                    <i class="fa-solid font-game text-2xl text-white font-bold">D2</i>
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col lg:flex-row justify-between items-center gap-4">
+            <div class="flex items-center justify-between w-full lg:w-auto">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-red-600 to-amber-600 flex items-center justify-center shadow-lg shadow-red-900/40">
+                        <i class="fa-solid font-game text-2xl text-white font-bold">D2</i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold tracking-wide text-white flex items-center gap-2">
+                            DOTA2 抖音赛事管理系统
+                            <span class="text-xs px-2 py-0.5 rounded bg-red-900/60 text-red-300 border border-red-700/50">持久化加强版</span>
+                        </h1>
+                        <p class="text-xs text-gray-400">智能选手分队 · 4强淘汰赛 · 6队BO3对抗赛</p>
+                    </div>
                 </div>
-                <div>
-                    <h1 class="text-xl font-bold tracking-wide text-white flex items-center gap-2">
-                        DOTA2 抖音赛事管理系统
-                        <span class="text-xs px-2 py-0.5 rounded bg-red-900/60 text-red-300 border border-red-700/50">博主专用版</span>
-                    </h1>
-                    <p class="text-xs text-gray-400">智能选手分队 · 4强淘汰赛 · 6队BO3对抗赛</p>
+
+                <!-- Live Saving Indicator Badge -->
+                <div id="save-status-badge" class="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs bg-emerald-950/80 border border-emerald-600/60 text-emerald-300 shadow">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span id="save-status-text">已实时自动保存</span>
                 </div>
             </div>
 
-            <!-- Tab Buttons -->
-            <nav class="flex rounded-lg bg-dota-dark p-1 border border-dota-border text-sm overflow-x-auto max-w-full">
-                <button onclick="switchTab('players')" id="tab-players" class="tab-btn px-4 py-2 rounded-md transition flex items-center gap-2 whitespace-nowrap bg-red-600 text-white font-medium shadow">
-                    <i class="fa-solid fa-users"></i> 1. 选手报名库 <span id="player-count-badge" class="ml-1 px-1.5 py-0.2 bg-black/40 rounded-full text-xs">0</span>
-                </button>
-                <button onclick="switchTab('teams')" id="tab-teams" class="tab-btn px-4 py-2 rounded-md transition flex items-center gap-2 whitespace-nowrap text-gray-400 hover:text-white">
-                    <i class="fa-solid fa-shield-halved"></i> 2. 智能自动分队
-                </button>
-                <button onclick="switchTab('bracket')" id="tab-bracket" class="tab-btn px-4 py-2 rounded-md transition flex items-center gap-2 whitespace-nowrap text-gray-400 hover:text-white">
-                    <i class="fa-solid fa-sitemap"></i> 3. 4强淘汰树状赛
-                </button>
-                <button onclick="switchTab('match6')" id="tab-match6" class="tab-btn px-4 py-2 rounded-md transition flex items-center gap-2 whitespace-nowrap text-gray-400 hover:text-white">
-                    <i class="fa-solid fa-trophy"></i> 4. 6队BO3对抗赛
-                </button>
-            </nav>
+            <div class="flex flex-wrap items-center justify-between lg:justify-end gap-3 w-full lg:w-auto">
+                <!-- Backup & Restore Data Buttons -->
+                <div class="flex items-center gap-2">
+                    <button onclick="exportJSONData()" class="bg-amber-950/60 hover:bg-amber-900 border border-amber-600/60 text-amber-200 text-xs px-3 py-1.5 rounded-lg transition flex items-center gap-1.5" title="导出完整的 JSON 数据备份文件到电脑/手机">
+                        <i class="fa-solid fa-download"></i> 导出JSON备份
+                    </button>
+                    <label class="bg-gray-800 hover:bg-gray-700 border border-gray-600 text-gray-200 text-xs px-3 py-1.5 rounded-lg cursor-pointer transition flex items-center gap-1.5" title="从 JSON 文件恢复全量数据">
+                        <i class="fa-solid fa-upload"></i> 导入JSON恢复
+                        <input type="file" id="json-file-input" accept=".json" onchange="importJSONData(event)" class="hidden">
+                    </label>
+                </div>
+
+                <!-- Tab Buttons -->
+                <nav class="flex rounded-lg bg-dota-dark p-1 border border-dota-border text-sm overflow-x-auto max-w-full">
+                    <button onclick="switchTab('players')" id="tab-players" class="tab-btn px-3 py-1.5 rounded-md transition flex items-center gap-2 whitespace-nowrap bg-red-600 text-white font-medium shadow text-xs">
+                        <i class="fa-solid fa-users"></i> 1. 选手报名库 <span id="player-count-badge" class="ml-1 px-1.5 py-0.2 bg-black/40 rounded-full text-[10px]">0</span>
+                    </button>
+                    <button onclick="switchTab('teams')" id="tab-teams" class="tab-btn px-3 py-1.5 rounded-md transition flex items-center gap-2 whitespace-nowrap text-gray-400 hover:text-white text-xs">
+                        <i class="fa-solid fa-shield-halved"></i> 2. 智能自动分队
+                    </button>
+                    <button onclick="switchTab('bracket')" id="tab-bracket" class="tab-btn px-3 py-1.5 rounded-md transition flex items-center gap-2 whitespace-nowrap text-gray-400 hover:text-white text-xs">
+                        <i class="fa-solid fa-sitemap"></i> 3. 4强淘汰树状赛
+                    </button>
+                    <button onclick="switchTab('match6')" id="tab-match6" class="tab-btn px-3 py-1.5 rounded-md transition flex items-center gap-2 whitespace-nowrap text-gray-400 hover:text-white text-xs">
+                        <i class="fa-solid fa-trophy"></i> 4. 6队BO3对抗赛
+                    </button>
+                </nav>
+            </div>
         </div>
     </header>
 
@@ -353,24 +382,183 @@
 
     <!-- Footer -->
     <footer class="border-t border-dota-border py-4 text-center text-xs text-gray-500 bg-dota-card/50">
-        <p>DOTA2 社区赛事管理助手 · 专为抖音博主比赛定制 · 所有数据实时本地存储</p>
+        <p>DOTA2 社区赛事管理助手 · 专为抖音博主比赛定制 · 包含 IndexedDB 双重实时持久化存储</p>
     </footer>
 
     <!-- JavaScript Logic -->
     <script>
-        // Persistent State Management (Real-time sync to LocalStorage)
-        let players = JSON.parse(localStorage.getItem('dota2_players')) || [];
-        let teams = JSON.parse(localStorage.getItem('dota2_teams')) || [];
-        let bracketState = JSON.parse(localStorage.getItem('dota2_bracket4')) || null;
-        let matches6State = JSON.parse(localStorage.getItem('dota2_matches6')) || [];
+        // Data State Variables
+        let players = [];
+        let teams = [];
+        let bracketState = null;
+        let matches6State = [];
 
-        // App Initialization
-        window.onload = function() {
+        // IndexedDB Initialization
+        let db = null;
+        const request = indexedDB.open("Dota2TournamentDB", 1);
+
+        request.onupgradeneeded = function(e) {
+            db = e.target.result;
+            if (!db.objectStoreNames.contains("appState")) {
+                db.createObjectStore("appState", { keyPath: "id" });
+            }
+        };
+
+        request.onsuccess = function(e) {
+            db = e.target.result;
+            loadAllState();
+        };
+
+        request.onerror = function(e) {
+            console.error("IndexedDB error:", e);
+            // Fallback to localStorage load
+            loadFromLocalStorage();
+        };
+
+        // Comprehensive Load State Procedure
+        function loadAllState() {
+            // Priority 1: Read from IndexedDB
+            if (db) {
+                const tx = db.transaction("appState", "readonly");
+                const store = tx.objectStore("appState");
+                const getReq = store.get("masterState");
+
+                getReq.onsuccess = function() {
+                    if (getReq.result) {
+                        applyState(getReq.result.data);
+                    } else {
+                        loadFromLocalStorage();
+                    }
+                };
+                getReq.onerror = function() {
+                    loadFromLocalStorage();
+                };
+            } else {
+                loadFromLocalStorage();
+            }
+        }
+
+        function loadFromLocalStorage() {
+            players = JSON.parse(localStorage.getItem('dota2_players')) || [];
+            teams = JSON.parse(localStorage.getItem('dota2_teams')) || [];
+            bracketState = JSON.parse(localStorage.getItem('dota2_bracket4')) || null;
+            matches6State = JSON.parse(localStorage.getItem('dota2_matches6')) || [];
+            renderAllViews();
+        }
+
+        function applyState(data) {
+            if (!data) return;
+            players = data.players || [];
+            teams = data.teams || [];
+            bracketState = data.bracketState || null;
+            matches6State = data.matches6State || [];
+            renderAllViews();
+        }
+
+        function renderAllViews() {
             renderPlayerTable();
             if (teams.length > 0) renderTeams();
             if (bracketState) render4Bracket();
             if (matches6State.length > 0) render6Matches();
-        };
+        }
+
+        // Single-Source Real-time Persistence Saver (Dual-Write: LocalStorage + IndexedDB)
+        function triggerRealtimeSave() {
+            const badgeText = document.getElementById('save-status-text');
+            const badge = document.getElementById('save-status-badge');
+            
+            // Visual feedback - saving
+            if (badgeText && badge) {
+                badgeText.innerText = "正在同步备份...";
+                badge.className = "flex items-center gap-1.5 px-3 py-1 rounded-full text-xs bg-amber-950/80 border border-amber-600/60 text-amber-300 shadow";
+            }
+
+            // 1. Save to LocalStorage
+            localStorage.setItem('dota2_players', JSON.stringify(players));
+            localStorage.setItem('dota2_teams', JSON.stringify(teams));
+            localStorage.setItem('dota2_bracket4', JSON.stringify(bracketState));
+            localStorage.setItem('dota2_matches6', JSON.stringify(matches6State));
+
+            // 2. Dual Save to IndexedDB asynchronously
+            if (db) {
+                try {
+                    const tx = db.transaction("appState", "readwrite");
+                    const store = tx.objectStore("appState");
+                    store.put({
+                        id: "masterState",
+                        data: {
+                            players,
+                            teams,
+                            bracketState,
+                            matches6State,
+                            timestamp: Date.now()
+                        }
+                    });
+                } catch(err) {
+                    console.warn("IndexedDB write failed:", err);
+                }
+            }
+
+            // Update badge - saved successfully
+            setTimeout(() => {
+                if (badgeText && badge) {
+                    badgeText.innerText = "已实时持久化到本地";
+                    badge.className = "flex items-center gap-1.5 px-3 py-1 rounded-full text-xs bg-emerald-950/80 border border-emerald-600/60 text-emerald-300 shadow";
+                }
+            }, 300);
+        }
+
+        // JSON Data Export
+        function exportJSONData() {
+            const dumpData = {
+                version: "2.0",
+                exportedAt: new Date().toLocaleString(),
+                players,
+                teams,
+                bracketState,
+                matches6State
+            };
+
+            const blob = new Blob([JSON.stringify(dumpData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const dateStr = new Date().toISOString().slice(0,10);
+            a.download = `DOTA2赛事管理系统备份_${dateStr}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            showToast('JSON 数据文件已打包导出生成并保存到设备！', 'success');
+        }
+
+        // JSON Data Import
+        function importJSONData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (imported && (imported.players || imported.teams)) {
+                        players = imported.players || [];
+                        teams = imported.teams || [];
+                        bracketState = imported.bracketState || null;
+                        matches6State = imported.matches6State || [];
+
+                        triggerRealtimeSave();
+                        renderAllViews();
+                        showToast('已成功导入并同步该 JSON 赛事全量备份数据！', 'success');
+                    } else {
+                        showToast('导入文件格式不符，请确认是导出的 JSON 备份文件！', 'error');
+                    }
+                } catch(err) {
+                    showToast('文件解析失败：非有效的 JSON 文件！', 'error');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = ''; // Reset input
+        }
 
         // Navigation Tab Switcher
         function switchTab(tabId) {
@@ -389,26 +577,6 @@
             }
 
             document.getElementById(`sec-${tabId}`).classList.remove('hidden');
-        }
-
-        // Save Players to LocalStorage
-        function savePlayers() {
-            localStorage.setItem('dota2_players', JSON.stringify(players));
-        }
-
-        // Save Teams
-        function saveTeams() {
-            localStorage.setItem('dota2_teams', JSON.stringify(teams));
-        }
-
-        // Save Bracket State
-        function saveBracket() {
-            localStorage.setItem('dota2_bracket4', JSON.stringify(bracketState));
-        }
-
-        // Save Matches6 State
-        function saveMatches6() {
-            localStorage.setItem('dota2_matches6', JSON.stringify(matches6State));
         }
 
         // Auto Fill MMR from Preset Dropdown
@@ -455,20 +623,20 @@
             };
 
             players.unshift(newPlayer);
-            savePlayers();
+            triggerRealtimeSave();
             renderPlayerTable();
 
             // Reset Form
             document.getElementById('player-form').reset();
-            showToast(`选手 ${name} (MMR:${mmr}) 录入并保存成功！`, 'success');
+            showToast(`选手 ${name} (MMR:${mmr}) 录入并实时保存成功！`, 'success');
         }
 
         // Delete Player
         function deletePlayer(id) {
             players = players.filter(p => p.id !== id);
-            savePlayers();
+            triggerRealtimeSave();
             renderPlayerTable();
-            showToast('已删除该选手', 'info');
+            showToast('已删除该选手并同步保存', 'info');
         }
 
         // Clear All Data
@@ -479,12 +647,19 @@
                 bracketState = null;
                 matches6State = [];
                 localStorage.clear();
+
+                if (db) {
+                    const tx = db.transaction("appState", "readwrite");
+                    tx.objectStore("appState").clear();
+                }
+
                 renderPlayerTable();
                 document.getElementById('teams-container').innerHTML = `
                     <div class="col-span-full py-12 text-center text-gray-500 border-2 border-dashed border-dota-border rounded-xl">
                         <i class="fa-solid fa-shield-halved text-4xl mb-3 text-gray-600"></i>
                         <p>暂未生成战队，请先在【选手报名库】手工添加报名选手。</p>
                     </div>`;
+                triggerRealtimeSave();
                 showToast('已彻底清空全部本地数据！', 'info');
             }
         }
@@ -632,9 +807,9 @@
             newTeams.sort((a, b) => a.name.localeCompare(b.name));
 
             teams = newTeams;
-            saveTeams();
+            triggerRealtimeSave();
             renderTeams();
-            showToast(`成功通过智能算法分组 ${targetTeamCount} 支均衡战队并保存！`, 'success');
+            showToast(`成功通过智能算法分组 ${targetTeamCount} 支均衡战队并实时存储！`, 'success');
         }
 
         // Render Teams
@@ -697,9 +872,9 @@
             ];
 
             bracketState = { r1, r2, champion: null };
-            saveBracket();
+            triggerRealtimeSave();
             render4Bracket();
-            showToast('4强淘汰赛对阵表已按战队顺序生成！', 'success');
+            showToast('4强淘汰赛对阵表已更新并自动保存！', 'success');
         }
 
         function render4Bracket() {
@@ -769,7 +944,7 @@
                 bracketState.champion = winningTeam;
             }
 
-            saveBracket();
+            triggerRealtimeSave();
             render4Bracket();
             showToast(`恭喜 ${winningTeam.name} 胜出！`, 'success');
         }
@@ -795,7 +970,7 @@
             }
 
             matches6State = matches;
-            saveMatches6();
+            triggerRealtimeSave();
             render6Matches();
             showToast('3 组 BO3 对抗赛对局已生成！', 'success');
         }
@@ -870,7 +1045,7 @@
             } else if (score === '1:2' || score === '0:2') {
                 m.winner = m.t2;
             }
-            saveMatches6();
+            triggerRealtimeSave();
             render6Matches();
         }
 
