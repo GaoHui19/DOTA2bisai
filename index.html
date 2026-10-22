@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dota 2 内战赛事管理平台</title>
+  <title>Dota 2 赛事管理与多端实时同步平台</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <style>
@@ -45,9 +45,39 @@
       color: #34d399;
       animation: pulse 1.5s infinite;
     }
+    /* 居中模态弹窗遮罩 */
+    .modal-backdrop {
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      animation: fadeIn 0.2s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
   </style>
 </head>
 <body class="p-3 md:p-6 min-h-screen">
+
+  <!-- 🏆 最终冠军居中弹窗 -->
+  <div id="champion-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden">
+    <div class="dota-card rounded-2xl p-6 md:p-8 max-w-md w-full border border-amber-500/50 shadow-2xl text-center relative space-y-4">
+      <button onclick="closeChampionModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-lg w-8 h-8 rounded-full bg-gray-900 border border-gray-700 flex items-center justify-center transition">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div class="w-16 h-16 mx-auto rounded-full bg-amber-500/20 border border-amber-500 text-amber-400 flex items-center justify-center text-3xl shadow-lg animate-bounce">
+        <i class="fa-solid fa-trophy"></i>
+      </div>
+      <div>
+        <h3 class="text-xs font-bold text-amber-500 tracking-widest uppercase">GRAND CHAMPION</h3>
+        <h2 id="modal-champion-name" class="text-2xl md:text-3xl font-black text-white mt-1">-- 战队</h2>
+      </div>
+      <p class="text-xs text-gray-300">恭喜该战队在本次 DOTA 2 巅峰对决中脱颖而出，勇夺总冠军！</p>
+      <button onclick="closeChampionModal()" class="w-full py-2.5 rounded-lg bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white font-bold text-sm shadow transition">
+        确定
+      </button>
+    </div>
+  </div>
 
   <div class="max-w-7xl mx-auto space-y-4">
 
@@ -55,10 +85,11 @@
     <div class="dota-card rounded-xl p-4 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       <div>
         <h1 class="text-2xl font-black text-red-500 flex items-center gap-3">
-          <i class="fa-solid fa-swords text-red-500"></i>
-          <i class="fa-solid fa-trophy"></i> DOTA 2 赛事管理系统
+          <i class="fa-solid fa-trophy"></i> 
+          <i class="fa-solid fa-swords"></i>
+          DOTA 2 赛事管理系统
         </h1>
-        <p class="text-xs text-gray-400 mt-1">云端秒级同步 | 冠军弹窗提醒 | 段位区间防断层组队</p>
+        <p class="text-xs text-gray-400 mt-1">云端秒级同步 | 仅弹窗提示总冠军 | 严格/综合双模防断层组队</p>
       </div>
 
       <!-- 云端状态 -->
@@ -151,21 +182,20 @@
       </div>
     </div>
 
-    <!-- 页面 2: 综合实力 智能匹配组队 (新增组队模式选项) -->
+    <!-- 页面 2: 智能匹配组队 -->
     <div id="tab-teams" class="tab-content hidden dota-card rounded-xl p-5 shadow-lg space-y-4">
       <div class="flex flex-wrap justify-between items-center gap-3 border-b border-gray-800 pb-3">
         <div>
           <h2 class="text-lg font-bold text-amber-400 flex items-center gap-2">
-            <i class="fa-solid fa-wand-magic-sparkles"></i> 综合天梯与段位区间智能组队
+            <i class="fa-solid fa-wand-magic-sparkles"></i> 智能战队分流匹配
           </h2>
-          <p class="text-xs text-gray-400">支持自由平分或严格分数线段防实力断层组队</p>
+          <p class="text-xs text-gray-400">严格分数线段（同分段内防断层） / 综合天梯平分（全分段随机平衡）</p>
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
-          <!-- 组队模式选择 -->
           <select id="team-mode" class="bg-gray-950 border border-gray-800 text-xs rounded px-3 py-2 text-amber-300 font-semibold outline-none">
-            <option value="balance">模式A：综合平分天梯组队 (全分段平衡)</option>
-            <option value="tier">模式B：严格分数线段组队 (防实力差距过大)</option>
+            <option value="tier">模式B：严格分数线段组队 (防内部实力差距过大)</option>
+            <option value="balance">模式A：综合天梯平分组队 (全分段随机平衡)</option>
           </select>
 
           <select id="match-team-count" class="bg-gray-950 border border-gray-800 text-xs rounded px-3 py-2 text-white outline-none">
@@ -187,14 +217,14 @@
       </div>
     </div>
 
-    <!-- 页面 3: 4强淘汰赛 (BO3 三局两胜制，带冠军弹窗) -->
+    <!-- 页面 3: 4强淘汰赛 (BO3) -->
     <div id="tab-bracket4" class="tab-content hidden dota-card rounded-xl p-5 shadow-lg space-y-4">
       <div class="flex justify-between items-center border-b border-gray-800 pb-3">
         <div>
           <h2 class="text-lg font-bold text-blue-400 flex items-center gap-2">
             <i class="fa-solid fa-sitemap"></i> 4强淘汰赛 (BO3 三局两胜制)
           </h2>
-          <p class="text-xs text-gray-400">冠军决出后触发全场弹窗提示！</p>
+          <p class="text-xs text-gray-400">决出最后总冠军时将弹出居中恭贺提示框。</p>
         </div>
         <div class="flex items-center gap-2">
           <button onclick="syncTeamsToBracket4()" class="text-xs bg-blue-950 border border-blue-800 text-blue-300 hover:bg-blue-900 px-3 py-2 rounded font-bold transition">
@@ -325,20 +355,20 @@
       </div>
     </div>
 
-    <!-- 页面 4: 6队对决 (BO3 三局两胜制) -->
+    <!-- 页面 4: 6队对决 (BO3) -->
     <div id="tab-match6" class="tab-content hidden dota-card rounded-xl p-5 shadow-lg space-y-4">
       <div class="flex justify-between items-center border-b border-gray-800 pb-3">
         <div>
           <h2 class="text-lg font-bold text-emerald-400 flex items-center gap-2">
             <i class="fa-solid fa-swords"></i> 6队两两对决 (BO3 三局两胜制)
           </h2>
-          <p class="text-xs text-gray-400">率先获得 2 胜时自动弹出对局获胜提示。</p>
+          <p class="text-xs text-gray-400">率先获得 2 胜时锁定对局，无中途繁琐弹窗。</p>
         </div>
         <div class="flex items-center gap-2">
           <button onclick="syncTeamsToMatch6()" class="text-xs bg-emerald-950 border border-emerald-800 text-emerald-300 hover:bg-emerald-900 px-3.5 py-2 rounded font-bold transition">
             <i class="fa-solid fa-rotate mr-1"></i>导入6支队伍
           </button>
-          <button onclick="resetMatch6Data()" class="text-xs bg-red-950 border border-red-800 text-red-400 hover:bg-red-900 px-3 py-2 rounded font-bold transition">
+          <button onclick="resetMatch6Data()" class="text-xs bg-red-950 border border-red-800 text-red-400 hover:bg-red-900 px-3.5 py-2 rounded font-bold transition">
             <i class="fa-solid fa-rotate-right mr-1"></i>重置比赛
           </button>
         </div>
@@ -464,9 +494,7 @@
 
     let syncTimer = null;
     let isLocalUpdating = false;
-
-    // 弹窗提示防重复触发标记
-    let alertedWinners = { b4_m1: false, b4_m2: false, b4_f: false, m6_s1: false, m6_s2: false, m6_s3: false };
+    let championAlerted = false; // 只在总冠军决出时弹一次
 
     window.onload = () => {
       renderAll();
@@ -482,11 +510,12 @@
       document.getElementById('btn-' + tabId).classList.add('active');
     }
 
+    // 静默复制 ID，不弹窗提示
     function copyToClipboard(text) {
       navigator.clipboard.writeText(text).then(() => {
-        alert(`已成功复制游戏 ID: ${text}`);
+        // 静默复制成功，不干扰用户
       }).catch(() => {
-        prompt("请手动复制游戏 ID:", text);
+        // 降级静默
       });
     }
 
@@ -587,7 +616,7 @@
     function resetBracket4Data() {
       if (confirm('确定要重置 4 强淘汰赛的所有对阵和比分吗？')) {
         store.bracket4 = { t: ['战队1','战队2','战队3','战队4'], m1:[0,0], m2:[0,0], f:[0,0] };
-        alertedWinners.b4_m1 = false; alertedWinners.b4_m2 = false; alertedWinners.b4_f = false;
+        championAlerted = false;
         renderAll();
         pushToCloud();
       }
@@ -596,13 +625,12 @@
     function resetMatch6Data() {
       if (confirm('确定要重置 6 队对决的所有比分吗？')) {
         store.match6 = { t: ['队伍1','队伍2','队伍3','队伍4','队伍5','队伍6'], s1:[0,0], s2:[0,0], s3:[0,0] };
-        alertedWinners.m6_s1 = false; alertedWinners.m6_s2 = false; alertedWinners.m6_s3 = false;
         renderAll();
         pushToCloud();
       }
     }
 
-    // 核心智能组队算法：支持综合平分与区间分数线段组队
+    // 智能匹配分流核心算法
     function generateMatchmaking() {
       const count = parseInt(document.getElementById('match-team-count').value);
       const mode = document.getElementById('team-mode').value;
@@ -621,10 +649,9 @@
       }));
 
       if (mode === 'tier') {
-        // 模式B：严格按照段位/分数线段（同分段相近选手）分配，防止断层
+        // 模式B：严格分数线段组队（按实力段位阶梯交叉分摊，严格保证每个队伍内部五人实力/分数差距不能过大，防断层）
         for (let pos = 1; pos <= 5; pos++) {
           let posPlayers = store.players.filter(p => p.pos === pos).sort((a,b) => b.mmr - a.mmr);
-          // 将相同位置的选手按分数高低分成若干组，每组内随机分配到不同队伍
           for (let i = 0; i < posPlayers.length; i += count) {
             let chunk = posPlayers.slice(i, i + count).sort(() => 0.5 - Math.random());
             chunk.forEach((p, tIdx) => {
@@ -635,7 +662,7 @@
             });
           }
         }
-        // 处理可能存在的未分配选手
+        // 补充可能剩余的
         let unassigned = store.players.filter(p => !p.inTeam).sort((a,b) => b.mmr - a.mmr);
         teams.forEach(t => {
           while (t.members.length < 5 && unassigned.length > 0) {
@@ -645,12 +672,11 @@
           }
         });
       } else {
-        // 模式A：综合平分天梯组队（蛇形排列法平衡实力）
+        // 模式A：综合天梯平分模式（蛇形排布随机平衡，各队总分相近）
         let sortedPlayers = [...store.players].sort((a,b) => b.mmr - a.mmr);
         for (let pos = 1; pos <= 5; pos++) {
           let posPlayers = sortedPlayers.filter(p => p.pos === pos);
-          teams.forEach((team, tIdx) => {
-            // 蛇形或轮流取
+          teams.forEach((team) => {
             let selected = posPlayers.shift() || sortedPlayers.find(p => !p.inTeam);
             if (selected) {
               selected.inTeam = true;
@@ -658,7 +684,6 @@
             }
           });
         }
-        // 兜底补齐
         teams.forEach(t => {
           while(t.members.length < 5) {
             let p = sortedPlayers.find(x => !x.inTeam);
@@ -670,7 +695,6 @@
         });
       }
 
-      // 回写状态
       store.teams = teams;
       store.teams.forEach(t => {
         t.members.forEach(m => {
@@ -681,7 +705,7 @@
 
       renderAll();
       pushToCloud();
-      alert('✅ 智能战队匹配成功！');
+      alert('✅ 智能战队分流匹配成功！');
     }
 
     function clearTeams() {
@@ -702,8 +726,7 @@
 
     function renderPlayers() {
       const container = document.getElementById('player-list');
-      // 按照 MMR 从高到低排序显示
-      store.players.sort((a,b) => b.mmr - a.mmr);
+      store.players.sort((a,b) => b.mmr - a.mmr); // 严格从高到低排序
       const countText = `${store.players.length} 人`;
       document.getElementById('badge-players').innerText = countText;
       document.getElementById('player-total-count').innerText = countText;
@@ -721,7 +744,7 @@
         }`;
         div.innerHTML = `
           <div class="flex items-center gap-3">
-            <span class="text-xs text-gray-500 font-mono w-5">#${index + 1}</span>
+            <span class="text-xs text-gray-500 font-mono w-6">#${index + 1}</span>
             <div class="w-8 h-8 rounded-full bg-red-950/60 border border-red-800/50 flex items-center justify-center text-red-400 font-bold text-xs">
               ${p.name.charAt(0).toUpperCase()}
             </div>
@@ -734,7 +757,7 @@
             <div class="id-badge px-2.5 py-1 rounded text-xs flex items-center gap-2 font-bold shadow-sm">
               <span class="text-gray-400 text-[10px] font-normal">游戏ID:</span>
               <span>${p.id}</span>
-              <button onclick="copyToClipboard('${p.id}')" class="text-amber-400 hover:text-white transition ml-1" title="一键复制 ID">
+              <button onclick="copyToClipboard('${p.id}')" class="text-amber-400 hover:text-white transition ml-1" title="静默复制 ID">
                 <i class="fa-regular fa-copy"></i>
               </button>
             </div>
@@ -793,7 +816,7 @@
     function syncTeamsToBracket4() {
       if (store.teams.length < 4) return alert('需要先在组队页面匹配出至少 4 支队伍！');
       store.bracket4.t = store.teams.slice(0, 4).map(t => t.name);
-      alertedWinners.b4_m1 = false; alertedWinners.b4_m2 = false; alertedWinners.b4_f = false;
+      championAlerted = false;
       renderBracket4();
       pushToCloud();
     }
@@ -859,24 +882,6 @@
       document.getElementById('b4-t3-tag').classList.toggle('hidden', b.m2[0] < 2);
       document.getElementById('b4-t4-tag').classList.toggle('hidden', b.m2[1] < 2);
 
-      // 半决赛1 弹窗提示
-      if (b.m1[0] >= 2 && !alertedWinners.b4_m1) {
-        alertedWinners.b4_m1 = true;
-        alert(`🎉 捷报！【${b.t[0]}】 在 4 强半决赛 Match #1 中获胜并成功晋级！`);
-      } else if (b.m1[1] >= 2 && !alertedWinners.b4_m1) {
-        alertedWinners.b4_m1 = true;
-        alert(`🎉 捷报！【${b.t[1]}】 在 4 强半决赛 Match #1 中获胜并成功晋级！`);
-      }
-
-      // 半决赛2 弹窗提示
-      if (b.m2[0] >= 2 && !alertedWinners.b4_m2) {
-        alertedWinners.b4_m2 = true;
-        alert(`🎉 捷报！【${b.t[2]}】 在 4 强半决赛 Match #2 中获胜并成功晋级！`);
-      } else if (b.m2[1] >= 2 && !alertedWinners.b4_m2) {
-        alertedWinners.b4_m2 = true;
-        alert(`🎉 捷报！【${b.t[3]}】 在 4 强半决赛 Match #2 中获胜并成功晋级！`);
-      }
-
       let f1 = '胜者 1', f2 = '胜者 2';
       if (b.m1[0] >= 2) f1 = b.t[0];
       else if (b.m1[1] >= 2) f1 = b.t[1];
@@ -896,24 +901,33 @@
       let winner = '🏆 未决出';
       if (b.f[0] >= 2) {
         winner = '🏆 ' + f1;
-        if (!alertedWinners.b4_f) {
-          alertedWinners.b4_f = true;
-          alert(`👑 绝对高光！【${f1}】 击败对手夺得本次赛事的总冠军！！！`);
+        if (!championAlerted) {
+          championAlerted = true;
+          showChampionModal(f1);
         }
       } else if (b.f[1] >= 2) {
         winner = '🏆 ' + f2;
-        if (!alertedWinners.b4_f) {
-          alertedWinners.b4_f = true;
-          alert(`👑 绝对高光！【${f2}】 击败对手夺得本次赛事的总冠军！！！`);
+        if (!championAlerted) {
+          championAlerted = true;
+          showChampionModal(f2);
         }
       }
       document.getElementById('b4-winner-name').innerText = winner;
     }
 
+    // 🏆 显示冠军居中弹窗
+    function showChampionModal(teamName) {
+      document.getElementById('modal-champion-name').innerText = teamName;
+      document.getElementById('champion-modal').classList.remove('hidden');
+    }
+
+    function closeChampionModal() {
+      document.getElementById('champion-modal').classList.add('hidden');
+    }
+
     function syncTeamsToMatch6() {
       if (store.teams.length < 6) return alert('需要先在组队页面匹配出 6 支队伍！');
       store.match6.t = store.teams.slice(0, 6).map(t => t.name);
-      alertedWinners.m6_s1 = false; alertedWinners.m6_s2 = false; alertedWinners.m6_s3 = false;
       renderMatch6();
       pushToCloud();
     }
@@ -970,30 +984,6 @@
       document.getElementById('m6-t4-tag').classList.toggle('hidden', m.s2[1] < 2);
       document.getElementById('m6-t5-tag').classList.toggle('hidden', m.s3[0] < 2);
       document.getElementById('m6-t6-tag').classList.toggle('hidden', m.s3[1] < 2);
-
-      if (m.s1[0] >= 2 && !alertedWinners.m6_s1) {
-        alertedWinners.m6_s1 = true;
-        alert(`🎯 战报：6队对决 Group A 中 【${m.t[0]}】 胜出！`);
-      } else if (m.s1[1] >= 2 && !alertedWinners.m6_s1) {
-        alertedWinners.m6_s1 = true;
-        alert(`🎯 战报：6队对决 Group A 中 【${m.t[1]}】 胜出！`);
-      }
-
-      if (m.s2[0] >= 2 && !alertedWinners.m6_s2) {
-        alertedWinners.m6_s2 = true;
-        alert(`🎯 战报：6队对决 Group B 中 【${m.t[2]}】 胜出！`);
-      } else if (m.s2[1] >= 2 && !alertedWinners.m6_s2) {
-        alertedWinners.m6_s2 = true;
-        alert(`🎯 战报：6队对决 Group B 中 【${m.t[3]}】 胜出！`);
-      }
-
-      if (m.s3[0] >= 2 && !alertedWinners.m6_s3) {
-        alertedWinners.m6_s3 = true;
-        alert(`🎯 战报：6队对决 Group C 中 【${m.t[4]}】 胜出！`);
-      } else if (m.s3[1] >= 2 && !alertedWinners.m6_s3) {
-        alertedWinners.m6_s3 = true;
-        alert(`🎯 战报：6队对决 Group C 中 【${m.t[5]}】 胜出！`);
-      }
 
       let w1 = m.s1[0] >= 2 ? m.t[0] : (m.s1[1] >= 2 ? m.t[1] : null);
       let w2 = m.s2[0] >= 2 ? m.t[2] : (m.s2[1] >= 2 ? m.t[3] : null);
